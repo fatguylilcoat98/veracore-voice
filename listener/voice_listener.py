@@ -1,7 +1,8 @@
 """
 Veracore Voice Demo — The Good Neighbor Guard
 Built by Christopher Hughes · Sacramento, CA
-Created with the help of AI collaborators (Claude · GPT · Gemini · Groq)
+Created with the help of AI collaborators (Claude · GPT · Gemini · Groq)next
+
 Truth · Safety · We Got Your Back
 """
 
