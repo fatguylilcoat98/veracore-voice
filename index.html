@@ -302,7 +302,7 @@ async function callVeracore(){
   speak("Checking that now.",false);
   log('Sending to Veracore: "'+currentQuestion+'"','');
   try{
-    const res=await fetch(cfg.url+'/api/ask',{
+    const res=await fetch(cfg.url+'/ask',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({question:currentQuestion})
