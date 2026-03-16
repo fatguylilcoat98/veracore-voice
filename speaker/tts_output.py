@@ -1,3 +1,4 @@
+# FILE: speaker/tts_output.py
 """
 Veracore Voice Demo — The Good Neighbor Guard
 Built by Christopher Hughes · Sacramento, CA
@@ -5,47 +6,91 @@ Created with the help of AI collaborators (Claude · GPT · Gemini · Groq)
 Truth · Safety · We Got Your Back
 """
 
-import re
+import os
+import tempfile
 import config
 
 
-def format_for_speech(text: str, kb_answer: str = None) -> str:
-    """
-    Prepare a Veracore answer for spoken delivery.
-
-    Priority order:
-    1. If a prepared KB answer exists, use it — it's already speech-optimized.
-    2. Otherwise strip the live Veracore response to MAX_SPOKEN_SENTENCES.
-
-    Returns a clean string ready for TTS.
-    """
-    if kb_answer and kb_answer.strip():
-        return kb_answer.strip()
-
+def speak(text: str) -> bool:
     if not text or not text.strip():
-        return ""
+        print("[tts_output] No text to speak.")
+        return False
 
-    sentences = _split_sentences(text)
-    trimmed = sentences[:config.MAX_SPOKEN_SENTENCES]
-    result = " ".join(trimmed).strip()
-    result = _clean_for_speech(result)
-    return result
+    print(f"[tts_output] Speaking: {text}")
+
+    if config.TTS_PROVIDER == "elevenlabs":
+        return _speak_elevenlabs(text)
+    elif config.TTS_PROVIDER == "openai":
+        return _speak_openai(text)
+    else:
+        print(f"[tts_output] Unknown TTS provider: {config.TTS_PROVIDER}")
+        return False
 
 
-def _split_sentences(text: str) -> list:
-    """Split text into sentences."""
-    raw = re.split(r'(?<=[.!?])\s+', text.strip())
-    return [s.strip() for s in raw if s.strip()]
+def _speak_openai(text: str) -> bool:
+    try:
+        from openai import OpenAI
+        import pygame
+
+        client = OpenAI(api_key=config.OPENAI_API_KEY)
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="onyx",
+            input=text
+        )
+
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+            tmp_path = f.name
+            response.stream_to_file(tmp_path)
+
+        pygame.mixer.init()
+        pygame.mixer.music.load(tmp_path)
+        pygame.mixer.music.play()
+
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+
+        os.unlink(tmp_path)
+        return True
+
+    except Exception as e:
+        print(f"[tts_output] OpenAI TTS error: {e}")
+        return False
 
 
-def _clean_for_speech(text: str) -> str:
-    """
-    Remove markdown, symbols, and anything that sounds
-    wrong when read aloud by a TTS engine.
-    """
-    text = re.sub(r'\*+', '', text)
-    text = re.sub(r'#+\s*', '', text)
-    text = re.sub(r'\[.*?\]\(.*?\)', '', text)
-    text = re.sub(r'`+', '', text)
-    text = re.sub(r'\s{2,}', ' ', text)
-    return text.strip()
+def _speak_elevenlabs(text: str) -> bool:
+    try:
+        import requests
+        import pygame
+
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{config.ELEVENLABS_VOICE_ID}"
+        headers = {
+            "xi-api-key": config.ELEVENLABS_API_KEY,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "text": text,
+            "model_id": "eleven_monolingual_v1",
+            "voice_settings": {"stability": 0.6, "similarity_boost": 0.8}
+        }
+
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as f:
+            tmp_path = f.name
+            f.write(response.content)
+
+        pygame.mixer.init()
+        pygame.mixer.music.load(tmp_path)
+        pygame.mixer.music.play()
+
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+
+        os.unlink(tmp_path)
+        return True
+
+    except Exception as e:
+        print(f"[tts_output] ElevenLabs TTS error: {e}")
+        return False
