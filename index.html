@@ -59,7 +59,7 @@
   .stat-box { flex:1; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:14px; text-align:center; }
   .stat-number { font-size:28px; font-weight:700; color:var(--glow); font-family:'Share Tech Mono',monospace; line-height:1; }
   .stat-label { font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-top:4px; }
-  .log-panel { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px; max-height:150px; overflow-y:auto; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); }
+  .log-panel { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:16px; max-height:150px; overflow-y:auto; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:16px; }
   .log-entry { padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
   .log-entry.good { color:var(--glow); }
   .log-entry.warn { color:var(--glow2); }
@@ -79,6 +79,7 @@
     <div class="title">VERA<span>CORE</span> VOICE</div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
   </div>
+
   <div class="config-panel" id="config-panel">
     <div class="panel-label">Configuration</div>
     <div class="config-row">
@@ -95,10 +96,12 @@
     </div>
     <button class="btn btn-approve" onclick="saveConfig()" style="width:100%;margin-top:4px;">Save & Start</button>
   </div>
+
   <div class="status-bar">
     <div class="status-dot" id="status-dot"></div>
     <div id="status-text">Enter your API keys above to begin.</div>
   </div>
+
   <div class="main-panel">
     <div class="panel-label">Last Heard</div>
     <div class="heard-text empty" id="heard-text">Waiting for question...</div>
@@ -107,6 +110,7 @@
       <div class="badge" id="confidence-badge">Confidence: —</div>
     </div>
   </div>
+
   <div class="permission-box" id="permission-box">
     <div class="permission-question">Chris, may I answer that?</div>
     <div class="permission-buttons">
@@ -114,34 +118,43 @@
       <button class="btn btn-decline" onclick="decline()">✗ No, I'll Take It</button>
     </div>
   </div>
+
   <div class="answer-panel">
     <div class="panel-label">Verified Answer</div>
     <div class="answer-text empty" id="answer-text">No answer yet.</div>
   </div>
+
   <button class="btn-main" id="main-btn" onclick="toggleListening()" disabled>Start Listening</button>
+
   <div class="stats-row">
     <div class="stat-box"><div class="stat-number" id="answers-count">0</div><div class="stat-label">Answers Given</div></div>
     <div class="stat-box"><div class="stat-number" id="handoffs-count" style="color:var(--glow2)">0</div><div class="stat-label">Handoffs</div></div>
     <div class="stat-box"><div class="stat-number" id="questions-count" style="color:var(--muted)">0</div><div class="stat-label">Heard</div></div>
   </div>
+
   <div class="panel-label" style="margin:0 0 8px;">System Log</div>
   <div class="log-panel" id="log-panel"></div>
   <div class="footer">veracore-voice · fatguylilcoat98 · The Good Neighbor Guard</div>
 </div>
+
 <script>
+// KB = pre-optimized spoken answers for common demo questions
+// ALL questions still go to Veracore — KB just provides better spoken formatting
 const KB=[
   {id:"kb_001",keywords:["accurate","know","correct","verify","trust","reliable"],spoken_answer:"Every answer I give passes through multiple AI models that check each other's work. If they disagree, confidence drops and I say so. I don't guess. I verify.",confidence:0.75},
   {id:"kb_002",keywords:["different","chatgpt","other ai","unique","better","special"],spoken_answer:"Most AI gives you one answer from one model. I run the question through multiple models, then challenge my own answer before I speak. That's the difference between a response and a verified response.",confidence:0.75},
-  {id:"kb_003",keywords:["confident","decide","threshold","when","score","percentage"],spoken_answer:"I use a confidence score. If my models agree and the evidence is strong, confidence is high. If they disagree or evidence is weak, I tell Chris and I tell you that I'm not certain.",confidence:0.75},
-  {id:"kb_004",keywords:["fool","trick","manipulate","wrong","lie","bias","cheat"],spoken_answer:"Any system can be challenged. What makes me different is that I have an adversarial layer, a model whose entire job is to find flaws in my answer before it reaches you. I'm harder to fool because I argue with myself first.",confidence:0.75},
-  {id:"kb_005",keywords:["disagree","conflict","models","argue","contradict","fight"],spoken_answer:"When my models disagree, I don't pick a winner and hope for the best. Confidence drops, I flag the uncertainty, and I hand it back to Chris. Disagreement isn't failure, it's honesty.",confidence:0.75}
+  {id:"kb_003",keywords:["confident","decide","threshold","when","score","percentage"],spoken_answer:"I use a confidence score. If my models agree and the evidence is strong, confidence is high. If they disagree or evidence is weak, I tell Chris and I tell you that I am not certain.",confidence:0.75},
+  {id:"kb_004",keywords:["fool","trick","manipulate","wrong","lie","bias","cheat"],spoken_answer:"Any system can be challenged. What makes me different is that I have an adversarial layer, a model whose entire job is to find flaws in my answer before it reaches you. I am harder to fool because I argue with myself first.",confidence:0.75},
+  {id:"kb_005",keywords:["disagree","conflict","models","argue","contradict","fight"],spoken_answer:"When my models disagree, I don't pick a winner and hope for the best. Confidence drops, I flag the uncertainty, and I hand it back to Chris. Disagreement is not failure, it is honesty.",confidence:0.75}
 ];
+
 const KEYWORD_MIN=2;
 let isListening=false,isSpeaking=false,mediaRecorder=null,micStream=null;
 let audioChunks=[],currentQuestion=null,currentMatch=null;
 let answersCount=0,handoffsCount=0,questionsCount=0;
 let cfg={url:'',openai:'',groq:''};
 
+// ── Config + localStorage ─────────────────────────────────────────────────────
 function saveConfig(){
   cfg.url=document.getElementById('veracore-url').value.trim();
   cfg.openai=document.getElementById('openai-key').value.trim();
@@ -167,6 +180,7 @@ window.addEventListener('load',()=>{
   if(openai&&groq)saveConfig();
 });
 
+// ── Listening ─────────────────────────────────────────────────────────────────
 async function toggleListening(){
   if(isListening){stopListening();}else{await startListening();}
 }
@@ -205,6 +219,7 @@ function recordChunk(){
   setTimeout(()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();},5000);
 }
 
+// ── Transcribe ────────────────────────────────────────────────────────────────
 async function processAudio(){
   if(!audioChunks.length||isSpeaking){if(isListening&&!isSpeaking)recordChunk();return;}
   setStatus('processing','Transcribing...');
@@ -226,7 +241,8 @@ async function processAudio(){
     log('Heard: "'+text+'"','good');
     currentQuestion=text;
     const el=document.getElementById('heard-text');
-    el.textContent=text;el.classList.remove('empty');
+    el.textContent=text;
+    el.classList.remove('empty');
     evaluateQuestion(text);
   }catch(err){
     log('Transcription error: '+err.message,'bad');
@@ -234,6 +250,7 @@ async function processAudio(){
   }
 }
 
+// ── Evaluate — ALL questions go to permission then Veracore ───────────────────
 function evaluateQuestion(question){
   const q=question.toLowerCase();
   let best=null,top=0;
@@ -241,27 +258,25 @@ function evaluateQuestion(question){
     const score=e.keywords.filter(kw=>q.includes(kw)).length;
     if(score>=KEYWORD_MIN&&score>top){top=score;best=e;}
   }
+  currentMatch=best;
   if(best){
-    currentMatch=best;
     document.getElementById('match-badge').textContent=best.id;
     document.getElementById('match-badge').classList.add('active');
     document.getElementById('confidence-badge').textContent='Confidence: '+best.confidence;
     document.getElementById('confidence-badge').classList.add('active');
-    log('Match: '+best.id,'good');
-    showPermission();
+    log('KB match: '+best.id+' — asking permission.','good');
   }else{
-    currentMatch=null;
-    document.getElementById('match-badge').textContent='No Match';
-    document.getElementById('match-badge').classList.remove('active');
-    document.getElementById('confidence-badge').textContent='Confidence: —';
-    document.getElementById('confidence-badge').classList.remove('active');
-    log('No match — handing off to Chris.','warn');
-    handoffsCount++;
-    document.getElementById('handoffs-count').textContent=handoffsCount;
-    speak("Chris, that's a good question. I think it would be best for you to answer that one.",true);
+    document.getElementById('match-badge').textContent='Live Query';
+    document.getElementById('match-badge').classList.add('active');
+    document.getElementById('confidence-badge').textContent='Routing to Veracore...';
+    document.getElementById('confidence-badge').classList.add('active');
+    log('No KB match — routing live to Veracore.','warn');
   }
+  // ALL questions ask permission — nothing gets auto-declined
+  showPermission();
 }
 
+// ── Permission ────────────────────────────────────────────────────────────────
 function showPermission(){
   setStatus('waiting','Waiting for Chris approval...');
   document.getElementById('permission-box').classList.add('visible');
@@ -278,27 +293,29 @@ function decline(){
   log('Chris declined.','warn');
   handoffsCount++;
   document.getElementById('handoffs-count').textContent=handoffsCount;
-  if(isListening)recordChunk();
+  if(isListening)setTimeout(recordChunk,500);
 }
 
+// ── Call Veracore ─────────────────────────────────────────────────────────────
 async function callVeracore(){
   setStatus('processing','Calling Veracore...');
   speak("Checking that now.",false);
-  log('Sending to Veracore...','');
+  log('Sending to Veracore: "'+currentQuestion+'"','');
   try{
     const res=await fetch(cfg.url+'/ask',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({question:currentQuestion})
     });
-    if(!res.ok)throw new Error('Veracore '+res.status);
+    if(!res.ok)throw new Error('Veracore returned '+res.status);
     const data=await res.json();
     const answer=data.answer||'';
     if(!answer){doHandoff('timeout');return;}
+    // Use KB spoken answer if matched (cleaner for speech), else use live answer
     const spoken=currentMatch?currentMatch.spoken_answer:formatForSpeech(answer);
     document.getElementById('answer-text').textContent=spoken;
     document.getElementById('answer-text').classList.remove('empty');
-    log('Answer ready (confidence: '+(data.confidence||'—')+')','good');
+    log('Answer ready. Confidence: '+(data.confidence||'—'),'good');
     answersCount++;
     document.getElementById('answers-count').textContent=answersCount;
     speak(spoken,true);
@@ -311,17 +328,18 @@ async function callVeracore(){
 function doHandoff(reason){
   const phrase=reason==='timeout'
     ?"Still verifying. Chris, do you want to take that one?"
-    :"Chris, that's a good question. I think it would be best for you to answer that one.";
+    :"Chris, that is a good question. I think it would be best for you to answer that one.";
   handoffsCount++;
   document.getElementById('handoffs-count').textContent=handoffsCount;
   speak(phrase,true);
 }
 
+// ── TTS — mic mutes while speaking ───────────────────────────────────────────
 async function speak(text,resumeAfter){
   if(!text||!cfg.openai)return;
   isSpeaking=true;
   if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
-  log('Speaking: "'+text.substring(0,50)+'..."','');
+  log('Speaking: "'+text.substring(0,60)+'..."','');
   setStatus('speaking','Speaking...');
   try{
     const res=await fetch('https://api.openai.com/v1/audio/speech',{
@@ -344,10 +362,11 @@ async function speak(text,resumeAfter){
   }catch(err){
     log('TTS error: '+err.message,'bad');
     isSpeaking=false;
-    if(isListening&&resumeAfter)recordChunk();
+    if(isListening&&resumeAfter)setTimeout(recordChunk,800);
   }
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function formatForSpeech(text){
   const s=text.match(/[^.!?]+[.!?]*/g)||[text];
   return s.slice(0,3).join(' ').trim();
