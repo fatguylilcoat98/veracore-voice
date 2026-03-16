@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "description": "Veracore demo prepared knowledge base — April 1 One Million Cups",
+  "entries": [
+    {
+      "id": "kb_001",
+      "keywords": ["accurate", "know", "correct", "verify", "trust", "reliable"],
+      "question": "How do you know the answer is actually accurate?",
+      "spoken_answer": "Every answer I give passes through multiple AI models that check each other's work. If they disagree, confidence drops and I say so. I don't guess. I verify.",
+      "confidence_floor": 0.75,
+      "allow_live_pipeline": true,
+      "category": "verification"
+    },
+    {
+      "id": "kb_002",
+      "keywords": ["different", "chatgpt", "other AI", "unique", "better", "special"],
+      "question": "What makes this different from just asking ChatGPT?",
+      "spoken_answer": "Most AI gives you one answer from one model. I run the question through multiple models, then challenge my own answer before I speak. That's the difference between a response and a verified response.",
+      "confidence_floor": 0.75,
+      "allow_live_pipeline": true,
+      "category": "differentiation"
+    },
+    {
+      "id": "kb_003",
+      "keywords": ["confident", "decide", "threshold", "when", "score", "percentage"],
+      "question": "How does the system decide when it's confident enough to answer?",
+      "spoken_answer": "I use a confidence score. If my models agree and the evidence is strong, confidence is high. If they disagree or evidence is weak, I tell Chris — and I tell you — that I'm not certain.",
+      "confidence_floor": 0.75,
+      "allow_live_pipeline": true,
+      "category": "confidence"
+    },
+    {
+      "id": "kb_004",
+      "keywords": ["fool", "trick", "manipulate", "wrong", "lie", "bias", "cheat"],
+      "question": "Can it be fooled or manipulated?",
+      "spoken_answer": "Any system can be challenged. What makes me different is that I have an adversarial layer — a model whose entire job is to find flaws in my answer before it reaches you. I'm harder to fool because I argue with myself first.",
+      "confidence_floor": 0.75,
+      "allow_live_pipeline": true,
+      "category": "adversarial"
+    },
+    {
+      "id": "kb_005",
+      "keywords": ["disagree", "conflict", "models", "argue", "contradict", "fight"],
+      "question": "What happens when the AI models disagree with each other?",
+      "spoken_answer": "When my models disagree, I don't pick a winner and hope for the best. Confidence drops, I flag the uncertainty, and I hand it back to Chris. Disagreement isn't failure — it's honesty.",
+      "confidence_floor": 0.75,
+      "allow_live_pipeline": true,
+      "category": "disagreement"
+    }
+  ],
+  "system_phrases": {
+    "permission_request": "Chris, may I answer that?",
+    "permission_granted": "Thank you, Chris.",
+    "handoff": "Chris, that's a good question. I think it would be best for you to answer that one.",
+    "timeout_response": "Still verifying. Chris, do you want to take that one?",
+    "out_of_scope": "I can only speak to what I've been verified to know. Chris can take that one.",
+    "thinking_cue": "Checking that now."
+  },
+  "settings": {
+    "max_spoken_sentences": 3,
+    "approval_timeout_seconds": 8,
+    "confidence_threshold": 0.70,
+    "keyword_match_minimum": 2
+  }
+}
