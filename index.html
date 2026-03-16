@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<!--
+  FILE: index.html
+  Veracore Voice Demo — The Good Neighbor Guard
+  Built by Christopher Hughes · Sacramento, CA
+  Created with the help of AI collaborators (Claude · GPT · Gemini · Groq)
+  Truth · Safety · We Got Your Back
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veracore Voice · The Good Neighbor Guard</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --border: #1e2530;
+    --glow: #00c9a7;
+    --glow2: #f0a500;
+    --danger: #ff4757;
+    --text: #e8edf5;
+    --muted: #5a6478;
+    --panel: #0d1117;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,201,167,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,201,167,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 720px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 30px 0 20px;
+  }
+
+  .logo-text {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .title span {
+    color: var(--glow);
+    text-shadow: 0 0 20px rgba(0,201,167,0.5);
+  }
+
+  .tagline {
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-top: 8px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin: 20px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .status-dot.listening { background: var(--glow); box-shadow: 0 0 8px var(--glow); animation: pulse 1.5s infinite; }
+  .status-dot.processing { background: var(--glow2); box-shadow: 0 0 8px var(--glow2); animation: pulse 0.8s infinite; }
+  .status-dot.speaking { background: #4ecdc4; box-shadow: 0 0 8px #4ecdc4; animation: pulse 0.5s infinite; }
+  .status-dot.waiting { background: var(--glow2); box-shadow: 0 0 8px var(--glow2); animation: pulse 1s infinite; }
+  .status-dot.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  #status-text { color: var(--text); flex: 1; }
+
+  /* Main display panel */
+  .main-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .heard-text {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    min-height: 32px;
+    line-height: 1.3;
+  }
+
+  .heard-text.empty { color: var(--muted); font-weight: 400; font-size: 16px; }
+
+  /* Match info */
+  .match-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .badge.active {
+    border-color: var(--glow);
+    color: var(--glow);
+    background: rgba(0,201,167,0.05);
+  }
+
+  /* Answer panel */
+  .answer-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 16px;
+    min-height: 80px;
+  }
+
+  .answer-text {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .answer-text.empty { color: var(--muted); font-size: 14px; font-family: 'Share Tech Mono', monospace; }
+
+  /* Permission box */
+  .permission-box {
+    background: rgba(240,165,0,0.05);
+    border: 1px solid rgba(240,165,0,0.3);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: none;
+    text-align: center;
+  }
+
+  .permission-box.visible { display: block; }
+
+  .permission-question {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--glow2);
+    margin-bottom: 16px;
+  }
+
+  .permission-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  /* Buttons */
+  .btn {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 14px 32px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-approve {
+    background: var(--glow);
+    color: #000;
+  }
+  .btn-approve:hover { background: #00e5be; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,201,167,0.4); }
+
+  .btn-decline {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+  .btn-decline:hover { background: rgba(255,71,87,0.1); }
+
+  /* Main control button */
+  .control-center {
+    text-align: center;
+    margin: 20px 0;
+  }
+
+  .btn-main {
+    width: 100%;
+    padding: 20px;
+    font-size: 20px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .btn-main:hover { border-color: var(--glow); color: var(--glow); }
+  .btn-main.active { border-color: var(--danger); color: var(--danger); background: rgba(255,71,87,0.05); }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-box {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--glow);
+    font-family: 'Share Tech Mono', monospace;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Log */
+  .log-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .log-entry.good { color: var(--glow); }
+  .log-entry.warn { color: var(--glow2); }
+  .log-entry.bad { color: var(--danger); }
+
+  /* Config panel */
+  .config-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .config-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .config-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .config-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .config-input:focus { border-color: var(--glow); }
+
+  .footer {
+    text-align: center;
+    padding: 20px 0;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-text">The Good Neighbor Guard</div>
+    <div class="title">VERA<span>CORE</span> VOICE</div>
+    <div class="tagline">Truth · Safety · We Got Your Back</div>
+  </div>
+
+  <!-- Config (API keys) -->
+  <div class="config-panel" id="config-panel">
+    <div class="panel-label">Configuration</div>
+    <div class="config-row">
+      <div class="config-label">Veracore URL</div>
+      <input class="config-input" id="veracore-url" type="text" value="https://veracore.onrender.com" placeholder="https://veracore.onrender.com">
+    </div>
+    <div class="config-row">
+      <div class="config-label">OpenAI Key</div>
+      <input class="config-input" id="openai-key" type="password" placeholder="sk-...">
+    </div>
+    <div class="config-row">
+      <div class="config-label">Groq Key</div>
+      <input class="config-input" id="groq-key" type="password" placeholder="gsk_...">
+    </div>
+    <button class="btn btn-approve" onclick="saveConfig()" style="width:100%;margin-top:4px;">Save & Start</button>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <div id="status-text">Enter your API keys above to begin.</div>
+  </div>
+
+  <!-- Heard question -->
+  <div class="main-panel">
+    <div class="panel-label">Last Heard</div>
+    <div class="heard-text empty" id="heard-text">Waiting for question...</div>
+    <div class="match-row">
+      <div class="badge" id="match-badge">No Match</div>
+      <div class="badge" id="confidence-badge">Confidence: —</div>
+    </div>
+  </div>
+
+  <!-- Permission box -->
+  <div class="permission-box" id="permission-box">
+    <div class="permission-question">Chris, may I answer that?</div>
+    <div class="permission-buttons">
+      <button class="btn btn-approve" onclick="approve()">✓ Yes, Answer</button>
+      <button class="btn btn-decline" onclick="decline()">✗ No, I'll Take It</button>
+    </div>
+  </div>
+
+  <!-- Answer -->
+  <div class="answer-panel">
+    <div class="panel-label">Verified Answer</div>
+    <div class="answer-text empty" id="answer-text">No answer yet.</div>
+  </div>
+
+  <!-- Main button -->
+  <button class="btn-main" id="main-btn" onclick="toggleListening()" disabled>
+    Start Listening
+  </button>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-number" id="answers-count">0</div>
+      <div class="stat-label">Answers Given</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number" id="handoffs-count" style="color: var(--glow2)">0</div>
+      <div class="stat-label">Handoffs</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-number" id="questions-count" style="color: var(--muted)">0</div>
+      <div class="stat-label">Heard</div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="panel-label" style="margin-bottom:8px;">System Log</div>
+  <div class="log-panel" id="log-panel"></div>
+
+  <div class="footer">
+    veracore-voice · fatguylilcoat98 · The Good Neighbor Guard
+  </div>
+
+</div>
+
+<script>
+// ── Knowledge Base ────────────────────────────────────────────────────────────
+const KB = [
+  {
+    id: "kb_001",
+    keywords: ["accurate", "know", "correct", "verify", "trust", "reliable"],
+    spoken_answer: "Every answer I give passes through multiple AI models that check each other's work. If they disagree, confidence drops and I say so. I don't guess. I verify.",
+    confidence: 0.75
+  },
+  {
+    id: "kb_002",
+    keywords: ["different", "chatgpt", "other ai", "unique", "better", "special"],
+    spoken_answer: "Most AI gives you one answer from one model. I run the question through multiple models, then challenge my own answer before I speak. That's the difference between a response and a verified response.",
+    confidence: 0.75
+  },
+  {
+    id: "kb_003",
+    keywords: ["confident", "decide", "threshold", "when", "score", "percentage"],
+    spoken_answer: "I use a confidence score. If my models agree and the evidence is strong, confidence is high. If they disagree or evidence is weak, I tell Chris — and I tell you — that I'm not certain.",
+    confidence: 0.75
+  },
+  {
+    id: "kb_004",
+    keywords: ["fool", "trick", "manipulate", "wrong", "lie", "bias", "cheat"],
+    spoken_answer: "Any system can be challenged. What makes me different is that I have an adversarial layer — a model whose entire job is to find flaws in my answer before it reaches you. I'm harder to fool because I argue with myself first.",
+    confidence: 0.75
+  },
+  {
+    id: "kb_005",
+    keywords: ["disagree", "conflict", "models", "argue", "contradict", "fight"],
+    spoken_answer: "When my models disagree, I don't pick a winner and hope for the best. Confidence drops, I flag the uncertainty, and I hand it back to Chris. Disagreement isn't failure — it's honesty.",
+    confidence: 0.75
+  }
+];
+
+const KEYWORD_MIN = 2;
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let isListening = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let currentQuestion = null;
+let currentMatch = null;
+let pendingApproval = false;
+let answersCount = 0;
+let handoffsCount = 0;
+let questionsCount = 0;
+let config = { veracoreUrl: '', openaiKey: '', groqKey: '' };
+
+// ── Config ────────────────────────────────────────────────────────────────────
+function saveConfig() {
+  config.veracoreUrl = document.getElementById('veracore-url').value.trim();
+  config.openaiKey = document.getElementById('openai-key').value.trim();
+  config.groqKey = document.getElementById('groq-key').value.trim();
+
+  if (!config.openaiKey) { log('OpenAI key required for voice output.', 'bad'); return; }
+  if (!config.groqKey) { log('Groq key required for speech-to-text.', 'bad'); return; }
+
+  document.getElementById('config-panel').style.display = 'none';
+  document.getElementById('main-btn').disabled = false;
+  setStatus('ready', 'Ready. Press Start Listening.');
+  log('Configuration saved.', 'good');
+}
+
+// ── Listen toggle ─────────────────────────────────────────────────────────────
+async function toggleListening() {
+  if (isListening) {
+    stopListening();
+  } else {
+    await startListening();
+  }
+}
+
+async function startListening() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    isListening = true;
+
+    document.getElementById('main-btn').textContent = 'Stop Listening';
+    document.getElementById('main-btn').classList.add('active');
+    setStatus('listening', 'Listening...');
+    log('Microphone active. Listening for questions.', 'good');
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = processAudio;
+
+    // Record in 5 second chunks
+    mediaRecorder.start();
+    setTimeout(() => { if (isListening && mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 5000);
+
+  } catch (err) {
+    log(`Microphone error: ${err.message}`, 'bad');
+    setStatus('error', 'Mic access denied. Allow microphone in browser.');
+  }
+}
+
+function stopListening() {
+  isListening = false;
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  document.getElementById('main-btn').textContent = 'Start Listening';
+  document.getElementById('main-btn').classList.remove('active');
+  setStatus('ready', 'Stopped.');
+  log('Listening stopped.', '');
+}
+
+// ── Process audio via Groq Whisper ────────────────────────────────────────────
+async function processAudio() {
+  if (audioChunks.length === 0) {
+    if (isListening) restartListening();
+    return;
+  }
+
+  setStatus('processing', 'Transcribing...');
+  log('Processing audio...', '');
+
+  const blob = new Blob(audioChunks, { type: 'audio/webm' });
+  audioChunks = [];
+
+  try {
+    const formData = new FormData();
+    formData.append('file', blob, 'audio.webm');
+    formData.append('model', 'whisper-large-v3');
+    formData.append('language', 'en');
+
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${config.groqKey}` },
+      body: formData
+    });
+
+    const data = await response.json();
+    const text = data.text ? data.text.trim() : '';
+
+    if (!text || text.length < 5) {
+      if (isListening) restartListening();
+      return;
+    }
+
+    questionsCount++;
+    document.getElementById('questions-count').textContent = questionsCount;
+    log(`Heard: "${text}"`, 'good');
+    currentQuestion = text;
+
+    // Update display
+    const heardEl = document.getElementById('heard-text');
+    heardEl.textContent = text;
+    heardEl.classList.remove('empty');
+
+    // Evaluate
+    evaluateQuestion(text);
+
+  } catch (err) {
+    log(`Transcription error: ${err.message}`, 'bad');
+    if (isListening) restartListening();
+  }
+}
+
+// ── Evaluate question ─────────────────────────────────────────────────────────
+function evaluateQuestion(question) {
+  const q = question.toLowerCase();
+  let bestMatch = null;
+  let bestScore = 0;
+
+  for (const entry of KB) {
+    const score = entry.keywords.filter(kw => q.includes(kw)).length;
+    if (score >= KEYWORD_MIN && score > bestScore) {
+      bestScore = score;
+      bestMatch = entry;
+    }
+  }
+
+  if (bestMatch) {
+    currentMatch = bestMatch;
+    document.getElementById('match-badge').textContent = bestMatch.id;
+    document.getElementById('match-badge').classList.add('active');
+    document.getElementById('confidence-badge').textContent = `Confidence: ${bestMatch.confidence}`;
+    document.getElementById('confidence-badge').classList.add('active');
+    log(`Match: ${bestMatch.id}`, 'good');
+    showPermission();
+  } else {
+    currentMatch = null;
+    document.getElementById('match-badge').textContent = 'No Match';
+    document.getElementById('match-badge').classList.remove('active');
+    document.getElementById('confidence-badge').textContent = 'Confidence: —';
+    document.getElementById('confidence-badge').classList.remove('active');
+    log('No match — handing off to Chris.', 'warn');
+    speak("Chris, that's a good question. I think it would be best for you to answer that one.");
+    handoffsCount++;
+    document.getElementById('handoffs-count').textContent = handoffsCount;
+    if (isListening) restartListening();
+  }
+}
+
+// ── Permission ────────────────────────────────────────────────────────────────
+function showPermission() {
+  pendingApproval = true;
+  setStatus('waiting', 'Waiting for Chris approval...');
+  document.getElementById('permission-box').classList.add('visible');
+  speak("Chris, may I answer that?");
+}
+
+function approve() {
+  document.getElementById('permission-box').classList.remove('visible');
+  pendingApproval = false;
+  callVeracore();
+}
+
+function decline() {
+  document.getElementById('permission-box').classList.remove('visible');
+  pendingApproval = false;
+  log('Chris declined. Returning to listening.', 'warn');
+  handoffsCount++;
+  document.getElementById('handoffs-count').textContent = handoffsCount;
+  if (isListening) restartListening();
+}
+
+// ── Call Veracore ─────────────────────────────────────────────────────────────
+async function callVeracore() {
+  setStatus('processing', 'Calling Veracore...');
+  speak("Checking that now.");
+  log('Sending to Veracore...', '');
+
+  try {
+    const response = await fetch(`${config.veracoreUrl}/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: currentQuestion })
+    });
+
+    if (!response.ok) throw new Error(`Veracore returned ${response.status}`);
+
+    const data = await response.json();
+    const answer = data.answer || '';
+
+    if (!answer) {
+      log('Empty response from Veracore.', 'bad');
+      handoff('timeout');
+      return;
+    }
+
+    // Use KB spoken answer if available, otherwise use live answer
+    const spoken = currentMatch ? currentMatch.spoken_answer : formatForSpeech(answer);
+
+    document.getElementById('answer-text').textContent = spoken;
+    document.getElementById('answer-text').classList.remove('empty');
+
+    log(`Answer ready (confidence: ${data.confidence || '—'})`, 'good');
+    speak(spoken);
+
+    answersCount++;
+    document.getElementById('answers-count').textContent = answersCount;
+    setStatus('speaking', 'Speaking answer...');
+
+    setTimeout(() => {
+      setStatus('listening', 'Listening...');
+      if (isListening) restartListening();
+    }, 8000);
+
+  } catch (err) {
+    log(`Veracore error: ${err.message}`, 'bad');
+    handoff('timeout');
+  }
+}
+
+function handoff(reason) {
+  const phrase = reason === 'timeout'
+    ? "Still verifying. Chris, do you want to take that one?"
+    : "Chris, that's a good question. I think it would be best for you to answer that one.";
+  speak(phrase);
+  handoffsCount++;
+  document.getElementById('handoffs-count').textContent = handoffsCount;
+  if (isListening) restartListening();
+}
+
+// ── Text to Speech (OpenAI) ───────────────────────────────────────────────────
+async function speak(text) {
+  if (!text || !config.openaiKey) return;
+  log(`Speaking: "${text.substring(0, 50)}..."`, '');
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.openaiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        voice: 'onyx',
+        input: text
+      })
+    });
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.play();
+    setStatus('speaking', 'Speaking...');
+    audio.onended = () => {
+      URL.revokeObjectURL(url);
+      if (isListening) setStatus('listening', 'Listening...');
+    };
+
+  } catch (err) {
+    log(`TTS error: ${err.message}`, 'bad');
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function restartListening() {
+  if (!isListening) return;
+  setTimeout(async () => {
+    if (!isListening) return;
+    audioChunks = [];
+    mediaRecorder.start();
+    setTimeout(() => {
+      if (isListening && mediaRecorder.state === 'recording') mediaRecorder.stop();
+    }, 5000);
+  }, 500);
+}
+
+function formatForSpeech(text) {
+  const sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+  return sentences.slice(0, 3).join(' ').trim();
+}
+
+function setStatus(type, message) {
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot ' + type;
+  document.getElementById('status-text').textContent = message;
+}
+
+function log(message, type = '') {
+  const panel = document.getElementById('log-panel');
+  const entry = document.createElement('div');
+  const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+  entry.className = 'log-entry ' + type;
+  entry.textContent = `${time}  ${message}`;
+  panel.insertBefore(entry, panel.firstChild);
+  if (panel.children.length > 50) panel.removeChild(panel.lastChild);
+}
+</script>
+
+</body>
+</html>
