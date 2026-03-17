@@ -46,6 +46,15 @@
       "confidence_floor": 0.75,
       "allow_live_pipeline": true,
       "category": "disagreement"
+    },
+    {
+      "id": "kb_birthday",
+      "keywords": ["30s", "30", "birthday", "convince", "younger", "age"],
+      "question": "Can you help Chris convince everyone he is still in his 30s?",
+      "spoken_answer": "Chris… I ran verification on that claim. Confidence score: extremely low.",
+      "confidence_floor": 0.0,
+      "allow_live_pipeline": false,
+      "category": "demo_opener"
     }
   ],
   "system_phrases": {
@@ -54,7 +63,9 @@
     "handoff": "Chris, that's a good question. I think it would be best for you to answer that one.",
     "timeout_response": "Still verifying. Chris, do you want to take that one?",
     "out_of_scope": "I can only speak to what I've been verified to know. Chris can take that one.",
-    "thinking_cue": "Checking that now."
+    "thinking_cue": "Checking that now.",
+    "still_verifying": "Still verifying — give me one more second.",
+    "queue_empty": "No questions are queued right now."
   },
   "settings": {
     "max_spoken_sentences": 3,
