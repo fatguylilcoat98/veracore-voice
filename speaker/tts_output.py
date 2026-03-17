@@ -1,4 +1,3 @@
-# FILE: speaker/tts_output.py
 """
 Veracore Voice Demo — The Good Neighbor Guard
 Built by Christopher Hughes · Sacramento, CA
@@ -10,6 +9,51 @@ import os
 import tempfile
 import config
 
+# ── Confidence floor thresholds (council spec) ────────────────────────────────
+CONFIDENCE_HIGH     = 0.65   # speak normally
+CONFIDENCE_MID_LOW  = 0.40   # speak with hedge
+# below 0.40 → do not speak answer, hand to visual only
+
+VISUAL_ANCHOR = "I've shown the full verification on screen."
+
+
+def speak_with_confidence_floor(text: str, confidence: float,
+                                 instruction_allowed: bool = True) -> bool:
+    """
+    Speak with confidence floor enforcement.
+    Called by main.py queue delivery — replaces direct speak() for answers.
+
+    Rules:
+      confidence >= 0.65  → speak normally + visual anchor
+      0.40 - 0.64         → hedge prefix + speak + visual anchor
+      < 0.40              → do NOT speak answer — say "check the screen"
+      instruction_allowed = False → completely silent
+    """
+    # Safety flag — Veracore said no
+    if not instruction_allowed:
+        print("[tts_output] instruction_allowed=False — staying silent.")
+        return False
+
+    if not text or not text.strip():
+        print("[tts_output] No answer text — skipping.")
+        return False
+
+    if confidence < CONFIDENCE_MID_LOW:
+        print(f"[tts_output] Confidence {confidence:.2f} below floor — visual only.")
+        return speak("I want to show you this one. Check the verification on screen.")
+
+    if confidence < CONFIDENCE_HIGH:
+        print(f"[tts_output] Confidence {confidence:.2f} — hedged response.")
+        hedged = f"I'm not fully certain, but — {text} {VISUAL_ANCHOR}"
+        return speak(hedged)
+
+    # Full confidence
+    print(f"[tts_output] Confidence {confidence:.2f} — full response.")
+    full = f"{text} {VISUAL_ANCHOR}"
+    return speak(full)
+
+
+# ── Original speak() — unchanged, used throughout the system ─────────────────
 
 def speak(text: str) -> bool:
     if not text or not text.strip():
@@ -46,10 +90,8 @@ def _speak_openai(text: str) -> bool:
         pygame.mixer.init()
         pygame.mixer.music.load(tmp_path)
         pygame.mixer.music.play()
-
         while pygame.mixer.music.get_busy():
             pygame.time.Clock().tick(10)
-
         os.unlink(tmp_path)
         return True
 
@@ -84,10 +126,8 @@ def _speak_elevenlabs(text: str) -> bool:
         pygame.mixer.init()
         pygame.mixer.music.load(tmp_path)
         pygame.mixer.music.play()
-
         while pygame.mixer.music.get_busy():
             pygame.time.Clock().tick(10)
-
         os.unlink(tmp_path)
         return True
 
