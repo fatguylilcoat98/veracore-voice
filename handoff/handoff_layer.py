@@ -7,6 +7,24 @@ Truth · Safety · We Got Your Back
 
 from speaker.tts_output import speak
 
+# ── Trigger phrases Chris says to deliver the next queued answer ──────────────
+DELIVERY_TRIGGERS = [
+    "go ahead",
+    "veracore go",
+    "answer that",
+    "next question",
+    "veracore answer"
+]
+
+
+def is_delivery_trigger(transcript: str) -> bool:
+    """
+    Returns True if the transcript is a host delivery command.
+    These phrases tell Veracore to speak the next queued answer.
+    """
+    lower = transcript.lower().strip()
+    return any(trigger in lower for trigger in DELIVERY_TRIGGERS)
+
 
 def handoff(phrases: dict, reason: str = "out_of_scope") -> None:
     """
