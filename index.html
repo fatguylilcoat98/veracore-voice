@@ -103,6 +103,26 @@
   .config-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none}
   .config-input:focus{border-color:var(--glow)}
   .footer{text-align:center;padding:16px 0;font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+
+  /* ── Veracore Eyes ── */
+  .eyes-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px}
+  .eyes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .eyes-label{font-size:10px;letter-spacing:3px;color:var(--glow);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+  .eyes-status{font-size:11px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+  .eyes-body{display:flex;gap:14px;align-items:flex-start}
+  .webcam-wrap{position:relative;flex-shrink:0}
+  #webcam{width:180px;height:135px;border-radius:6px;object-fit:cover;border:2px solid var(--border);background:#000;display:block}
+  .webcam-ring{position:absolute;inset:-4px;border-radius:10px;border:2px solid transparent;transition:all .3s;pointer-events:none}
+  .webcam-ring.speaking{border-color:var(--glow);box-shadow:0 0 12px rgba(0,201,167,.5);animation:glow-pulse 1s infinite}
+  @keyframes glow-pulse{0%,100%{box-shadow:0 0 8px rgba(0,201,167,.3)}50%{box-shadow:0 0 20px rgba(0,201,167,.7)}}
+  .eyes-info{flex:1}
+  .eyes-detection{font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--muted);margin-bottom:8px;min-height:16px}
+  .eyes-detection.active{color:var(--glow)}
+  .eyes-speaker{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;min-height:20px}
+  .eyes-confidence{font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--muted)}
+  .btn-eyes{padding:8px 14px;font-size:11px;border-radius:5px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+  .btn-eyes:hover{border-color:var(--glow);color:var(--glow)}
+  .btn-eyes.active{border-color:var(--glow);color:var(--glow);background:rgba(0,201,167,.08)}
 </style>
 </head>
 <body>
@@ -124,6 +144,25 @@
 <div class="mode-bar LOCKED" id="mode-bar"><div class="mode-dot"></div><span id="mode-text">STANDBY — Say "Veracore this is Chris" to begin</span></div>
 
 <div class="status-bar"><div class="status-dot" id="status-dot"></div><div id="status-text">Waiting for configuration...</div></div>
+
+<!-- Veracore Eyes — Webcam panel -->
+<div class="eyes-panel" id="eyes-panel">
+  <div class="eyes-header">
+    <div class="eyes-label">&#128065; Veracore Eyes — Watching the Room</div>
+    <button class="btn-eyes" id="eyes-btn" onclick="toggleEyes()">Enable Camera</button>
+  </div>
+  <div class="eyes-body">
+    <div class="webcam-wrap">
+      <video id="webcam" autoplay muted playsinline></video>
+      <div class="webcam-ring" id="webcam-ring"></div>
+    </div>
+    <div class="eyes-info">
+      <div class="eyes-detection" id="eyes-detection">Camera offline — click Enable Camera</div>
+      <div class="eyes-speaker" id="eyes-speaker"></div>
+      <div class="eyes-confidence" id="eyes-confidence"></div>
+    </div>
+  </div>
+</div>
 
 <div class="announce-box" id="announce-box">
   <div class="announce-text">Chris, I have that one.</div>
@@ -666,6 +705,251 @@ function log(msg,type){
   const t=new Date().toLocaleTimeString('en-US',{hour12:false});
   e.className='log-entry '+(type||'');e.textContent=t+'  '+msg;
   p.insertBefore(e,p.firstChild);if(p.children.length>60)p.removeChild(p.lastChild);
+}
+
+// ── Veracore Eyes — Webcam + Claude Vision ────────────────────────────────
+let eyesActive=false;
+let eyesStream=null;
+let eyesInterval=null;
+let lastSpeakerDesc='someone in the audience';
+let eyesCanvas=document.createElement('canvas');
+
+async function toggleEyes(){
+  if(eyesActive){
+    stopEyes();
+  } else {
+    await startEyes();
+  }
+}
+
+async function startEyes(){
+  try{
+    eyesStream=await navigator.mediaDevices.getUserMedia({video:{width:320,height:240,facingMode:'user'},audio:false});
+    const video=document.getElementById('webcam');
+    video.srcObject=eyesStream;
+    eyesActive=true;
+    document.getElementById('eyes-btn').textContent='Disable Camera';
+    document.getElementById('eyes-btn').classList.add('active');
+    document.getElementById('eyes-detection').textContent='Camera active — scanning room...';
+    document.getElementById('eyes-detection').classList.add('active');
+    log('Veracore Eyes activated.','good');
+    // Scan every 3 seconds when in COLLECTING or DELIVERING mode
+    eyesInterval=setInterval(scanRoom,3000);
+  }catch(err){
+    log('Camera error: '+err.message,'bad');
+    document.getElementById('eyes-detection').textContent='Camera access denied.';
+  }
+}
+
+function stopEyes(){
+  if(eyesStream) eyesStream.getTracks().forEach(t=>t.stop());
+  if(eyesInterval) clearInterval(eyesInterval);
+  eyesActive=false;
+  eyesStream=null;
+  eyesInterval=null;
+  document.getElementById('webcam').srcObject=null;
+  document.getElementById('eyes-btn').textContent='Enable Camera';
+  document.getElementById('eyes-btn').classList.remove('active');
+  document.getElementById('eyes-detection').textContent='Camera offline.';
+  document.getElementById('eyes-detection').classList.remove('active');
+  document.getElementById('webcam-ring').className='webcam-ring';
+  log('Veracore Eyes disabled.','warn');
+}
+
+async function scanRoom(){
+  // Only scan during active collection or delivery
+  if(mode!==MODES.COLLECTING&&mode!==MODES.DELIVERING&&mode!==MODES.PROCESSING) return;
+  if(isSpeaking) return;
+  if(!cfg.groq) return; // use groq key for Claude API auth check
+
+  const video=document.getElementById('webcam');
+  if(!video.videoWidth) return;
+
+  // Capture frame
+  eyesCanvas.width=video.videoWidth;
+  eyesCanvas.height=video.videoHeight;
+  const ctx=eyesCanvas.getContext('2d');
+  ctx.drawImage(video,0,0);
+  const base64=eyesCanvas.toDataURL('image/jpeg',0.7).split(',')[1];
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': cfg.openai, // Chris uses OpenAI key field — we'll use anthropic key here
+        'anthropic-version':'2023-06-01'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-5',
+        max_tokens:100,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:base64}},
+            {type:'text',text:'Look at this webcam image of an audience. Is anyone visibly speaking or about to speak? If yes, describe their position in the frame in 5 words or less (e.g. "person on the left", "person in center", "person raising hand"). If no one is clearly speaking, respond with just: nobody. Respond with only the description or "nobody".'}
+          ]
+        }]
+      })
+    });
+
+    if(!res.ok){
+      // Silent fail — eyes are bonus feature not critical
+      return;
+    }
+
+    const data=await res.json();
+    const desc=(data.content?.[0]?.text||'').trim().toLowerCase();
+
+    if(desc&&desc!=='nobody'&&desc.length>2){
+      lastSpeakerDesc=desc;
+      document.getElementById('eyes-speaker').textContent='Detected: '+desc;
+      document.getElementById('eyes-detection').textContent='Speaker identified';
+      document.getElementById('webcam-ring').className='webcam-ring speaking';
+      document.getElementById('eyes-confidence').textContent='Veracore is watching this person';
+      log('Eyes: detected "'+desc+'"','good');
+    } else {
+      document.getElementById('webcam-ring').className='webcam-ring';
+      document.getElementById('eyes-speaker').textContent='';
+      document.getElementById('eyes-detection').textContent='Scanning room...';
+      document.getElementById('eyes-confidence').textContent='';
+    }
+  }catch(err){
+    // Silent fail — don't interrupt the demo for a vision error
+    console.warn('Eyes scan error:',err.message);
+  }
+}
+
+// Override addToQueue to tag questions with speaker description
+const _origAddToQueue=addToQueue;
+// Patch the queue item to include speaker info
+const _origFetchVeracore=fetchVeracore;
+
+// Patch whatDoYouHave to include speaker context
+const _origWhatDoYouHave=whatDoYouHave;
+function whatDoYouHave(){
+  const ready=queue.find(q=>q.status==='READY');
+  const processing=queue.find(q=>q.status==='PROCESSING');
+  if(!ready&&!processing){speak("I don't have any questions queued right now Chris.",false);return;}
+  if(!ready&&processing){speak("I am still verifying. Give me just a moment.",false);return;}
+  pendingDelivery=ready;
+  const rc=queue.filter(q=>q.status==='READY').length;
+  const tc=queue.filter(q=>q.status!=='DELIVERED').length;
+  const dup=ready.duplicateCount>1?'. '+ready.duplicateCount+' people asked this one':'';
+  // Add speaker context if available
+  const speakerCtx=ready.speakerDesc&&ready.speakerDesc!=='someone in the audience'?' — I saw '+ready.speakerDesc+' ask this':'';
+  document.getElementById('announce-box').classList.add('visible');
+  document.getElementById('announce-question').textContent='"'+ready.question+'"';
+  document.getElementById('announce-meta').textContent=rc+' answer'+(rc!==1?'s':'')+' ready of '+tc+' total'+dup+(ready.speakerDesc?' · Speaker: '+ready.speakerDesc:'');
+  const speech=(ready.duplicateCount>1?'The most popular question I have is: ':'The next question I have is: ')+ready.question+(ready.duplicateCount>1?'. '+ready.duplicateCount+' people asked this.':'')+speakerCtx;
+  speak(speech,false);
+  document.getElementById('deliver-btn').disabled=false;
+  document.getElementById('skip-btn').disabled=false;
+}
+
+// Tag new queue items with current speaker description
+function routeQuestion(text){
+  const f=filterQuestion(text);
+  document.getElementById('filter-badge').textContent='Filter: '+f.reason;
+  document.getElementById('filter-badge').className='badge'+(f.pass?' active':' danger');
+  if(!f.pass){
+    filteredCount++;document.getElementById('filtered-count').textContent=filteredCount;
+    log('Filtered ('+f.reason+'): "'+text.substring(0,40)+'"','warn');
+    return;
+  }
+  const match=findMatch(text);
+  if(match){
+    document.getElementById('match-badge').textContent=match.id;
+    document.getElementById('match-badge').className='badge active';
+    document.getElementById('confidence-badge').textContent='KB: '+match.confidence;
+    document.getElementById('confidence-badge').className='badge active';
+  }else{
+    document.getElementById('match-badge').textContent='Live Query';
+    document.getElementById('match-badge').className='badge warn';
+    document.getElementById('confidence-badge').textContent='Routing live...';
+    document.getElementById('confidence-badge').className='badge warn';
+  }
+  // Tag with speaker description from eyes
+  const item=addToQueue(text,match,f.priority||'normal');
+  if(item&&eyesActive){
+    item.speakerDesc=lastSpeakerDesc;
+    log('Tagged question from: '+lastSpeakerDesc,'good');
+  }
+}
+
+// Add Anthropic key field to config
+window.addEventListener('DOMContentLoaded',()=>{
+  // Add anthropic key row to config panel
+  const configPanel=document.getElementById('config-panel');
+  if(configPanel){
+    const row=document.createElement('div');
+    row.className='config-row';
+    row.innerHTML='<div class="config-label">Anthropic Key</div><input class="config-input" id="anthropic-key" type="password" placeholder="sk-ant-...">';
+    // Insert before the save button
+    const saveBtn=configPanel.querySelector('button');
+    configPanel.insertBefore(row,saveBtn);
+    // Load from storage
+    const saved=localStorage.getItem('vc_anthropic');
+    if(saved) document.getElementById('anthropic-key').value=saved;
+  }
+});
+
+// Patch saveConfig to also save anthropic key
+const _origSaveConfig=saveConfig;
+function saveConfig(){
+  _origSaveConfig();
+  const anthropicKey=document.getElementById('anthropic-key');
+  if(anthropicKey&&anthropicKey.value){
+    cfg.anthropic=anthropicKey.value.trim();
+    localStorage.setItem('vc_anthropic',cfg.anthropic);
+    // Override the fetch in scanRoom to use real anthropic key
+    window._anthropicKey=cfg.anthropic;
+  }
+}
+
+// Use real anthropic key in scanRoom when available
+const _origScanRoom=scanRoom;
+async function scanRoom(){
+  if(mode!==MODES.COLLECTING&&mode!==MODES.DELIVERING&&mode!==MODES.PROCESSING) return;
+  if(isSpeaking) return;
+  const apiKey=window._anthropicKey||cfg.anthropic;
+  if(!apiKey) return;
+  const video=document.getElementById('webcam');
+  if(!video||!video.videoWidth) return;
+  eyesCanvas.width=video.videoWidth;
+  eyesCanvas.height=video.videoHeight;
+  const ctx=eyesCanvas.getContext('2d');
+  ctx.drawImage(video,0,0);
+  const base64=eyesCanvas.toDataURL('image/jpeg',0.7).split(',')[1];
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:60,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:base64}},
+          {type:'text',text:'Webcam of audience. Is anyone visibly speaking? If yes, describe position in 5 words max (e.g. "person on left", "person center", "person raising hand"). If no: respond "nobody". Only the description or "nobody".'}
+        ]}]
+      })
+    });
+    if(!res.ok) return;
+    const data=await res.json();
+    const desc=(data.content?.[0]?.text||'').trim().toLowerCase();
+    if(desc&&desc!=='nobody'&&desc.length>2){
+      lastSpeakerDesc=desc;
+      document.getElementById('eyes-speaker').textContent='Detected: '+desc;
+      document.getElementById('eyes-detection').textContent='Speaker identified';
+      document.getElementById('webcam-ring').className='webcam-ring speaking';
+      document.getElementById('eyes-confidence').textContent='Tagging next question to this person';
+    }else{
+      document.getElementById('webcam-ring').className='webcam-ring';
+      document.getElementById('eyes-speaker').textContent='';
+      document.getElementById('eyes-detection').textContent='Scanning room...';
+      document.getElementById('eyes-confidence').textContent='';
+    }
+  }catch(err){console.warn('Eyes:',err.message);}
 }
 </script>
 </body>
