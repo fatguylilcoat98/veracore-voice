@@ -259,8 +259,8 @@ const KB=[
 
 // ── Wake words ────────────────────────────────────────────────────────────
 const WAKE={
-  CHRIS_TALKING:["veracore this is chris","this is chris talking","vera this is chris","vericore this is chris","bear core this is chris","veracore listen","chris is talking","this is chris"],
-  COLLECTING:["any question","everyone throw","open for questions","start collecting","take questions","questions now"],
+  CHRIS_TALKING:["veracore this is chris","this is chris talking"],
+  COLLECTING:["any question answered","start collecting","everyone throw","open for questions"],
   STOP_COLLECTING:["stop listening","stop collecting","process the questions"],
   START_DELIVERING:["go ahead and start","start answering","begin answering"],
   WHAT:["what do you have","what question","veracore what"],
@@ -684,12 +684,23 @@ async function speak(text,resumeAfter){
   isSpeaking=true;micMuted=true;
   if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
   setStatus('speaking','Speaking...');
+  const safetyTimer=setTimeout(()=>{
+    log('Safety timeout — forcing mic back on.','warn');
+    isSpeaking=false;micMuted=false;
+    if(isListening){setStatus('listening','Listening...');recordChunk();}
+  },15000);
+  function release(){
+    clearTimeout(safetyTimer);
+    isSpeaking=false;
+    setTimeout(()=>{micMuted=false;if(isListening&&resumeAfter){setStatus('listening','Listening...');recordChunk();}},1000);
+  }
   try{
     const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1',voice:'onyx',input:text})});
     const blob=await res.blob();const url=URL.createObjectURL(blob);
     const audio=new Audio(url);window._aud=audio;audio.play();
-    audio.onended=()=>{URL.revokeObjectURL(url);window._aud=null;isSpeaking=false;setTimeout(()=>{micMuted=false;if(isListening&&resumeAfter){setStatus('listening','Listening...');recordChunk();}},1000);};
-  }catch(err){log('TTS error: '+err.message,'bad');isSpeaking=false;setTimeout(()=>{micMuted=false;if(isListening&&resumeAfter)recordChunk();},1000);}
+    audio.onended=()=>{URL.revokeObjectURL(url);window._aud=null;release();};
+    audio.onerror=()=>{URL.revokeObjectURL(url);window._aud=null;release();};
+  }catch(err){log('TTS error: '+err.message,'bad');release();}
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
