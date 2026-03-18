@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <!--
   FILE: index.html
-  Veracore Voice Demo — The Good Neighbor Guard
+  Veracore Voice — Co-Presenter Protocol v1.1
+  The Good Neighbor Guard
   Built by Christopher Hughes · Sacramento, CA
   Created with the help of AI collaborators (Claude · GPT · Gemini · Groq)
   Truth · Safety · We Got Your Back
@@ -23,228 +24,371 @@
   .title{font-size:42px;font-weight:700;letter-spacing:2px;color:var(--text);line-height:1}
   .title span{color:var(--glow);text-shadow:0 0 20px rgba(0,201,167,.5)}
   .tagline{font-size:13px;letter-spacing:3px;color:var(--muted);margin-top:8px;font-family:'Share Tech Mono',monospace}
-  .status-bar{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 20px;margin:20px 0;font-family:'Share Tech Mono',monospace;font-size:13px}
+  .mode-bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 16px;border-radius:6px;margin:12px 0;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);background:var(--panel);color:var(--muted);transition:all .3s}
+  .mode-bar.COLLECTING{border-color:var(--glow);color:var(--glow);background:rgba(0,201,167,.05)}
+  .mode-bar.LOCKED{border-color:var(--muted);color:var(--muted)}
+  .mode-dot{width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+  .status-bar{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px 20px;margin-bottom:14px;font-family:'Share Tech Mono',monospace;font-size:13px}
   .status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s}
   .status-dot.listening{background:var(--glow);box-shadow:0 0 8px var(--glow);animation:pulse 1.5s infinite}
   .status-dot.processing{background:var(--glow2);box-shadow:0 0 8px var(--glow2);animation:pulse .8s infinite}
   .status-dot.speaking{background:#4ecdc4;box-shadow:0 0 8px #4ecdc4;animation:pulse .5s infinite}
-  .status-dot.ready{background:var(--glow);box-shadow:0 0 12px var(--glow)}
   .status-dot.error{background:var(--danger);box-shadow:0 0 8px var(--danger)}
   @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
   #status-text{color:var(--text);flex:1}
-  .queue-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
-  .queue-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;font-family:'Share Tech Mono',monospace}
+  .queue-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+  .queue-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .panel-label{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;font-family:'Share Tech Mono',monospace}
+  .queue-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;font-family:'Share Tech Mono',monospace}
   .queue-item:last-child{border-bottom:none}
-  .queue-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .queue-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
   .queue-dot.PROCESSING{background:var(--glow2);animation:pulse .8s infinite}
-  .queue-dot.READY{background:var(--glow);box-shadow:0 0 6px var(--glow)}
-  .queue-dot.DELIVERED{background:var(--muted)}
+  .queue-dot.READY{background:var(--glow);box-shadow:0 0 5px var(--glow)}
+  .queue-dot.FAILED{background:var(--danger)}
   .queue-text{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .queue-status{color:var(--muted);font-size:11px}
+  .queue-status{font-size:10px;color:var(--muted)}
   .queue-status.READY{color:var(--glow);font-weight:700}
-  .queue-empty{color:var(--muted);font-size:12px;font-style:italic;text-align:center;padding:8px 0}
-  .announce-box{background:rgba(0,201,167,.05);border:2px solid var(--glow);border-radius:8px;padding:20px 24px;margin-bottom:16px;display:none;text-align:center}
-  .announce-box.visible{display:block;animation:glow-pulse 1.5s infinite}
+  .queue-empty{color:var(--muted);font-size:12px;font-style:italic;text-align:center;padding:10px 0}
+  .announce-box{background:rgba(0,201,167,.05);border:2px solid var(--glow);border-radius:8px;padding:20px 24px;margin-bottom:14px;display:none;text-align:center;animation:glow-pulse 1.5s infinite}
+  .announce-box.visible{display:block}
   @keyframes glow-pulse{0%,100%{box-shadow:0 0 10px rgba(0,201,167,.3)}50%{box-shadow:0 0 25px rgba(0,201,167,.6)}}
   .announce-text{font-size:20px;font-weight:700;color:var(--glow);margin-bottom:6px}
-  .announce-question{font-size:15px;color:var(--text);margin-bottom:14px;font-style:italic;min-height:20px}
-  .announce-buttons{display:flex;gap:12px;justify-content:center}
-  .main-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:16px}
-  .panel-label{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;font-family:'Share Tech Mono',monospace}
-  .heard-text{font-size:22px;font-weight:600;color:var(--text);min-height:32px;line-height:1.3}
-  .heard-text.empty{color:var(--muted);font-weight:400;font-size:16px}
-  .match-row{display:flex;gap:12px;margin-top:16px}
-  .badge{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted)}
+  .announce-question{font-size:15px;color:var(--text);margin-bottom:6px;font-style:italic}
+  .announce-meta{font-size:11px;color:var(--muted);font-family:'Share Tech Mono',monospace;margin-bottom:14px}
+  .announce-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .main-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:14px}
+  .heard-text{font-size:20px;font-weight:600;color:var(--text);min-height:28px;line-height:1.3;margin-bottom:10px}
+  .heard-text.empty{color:var(--muted);font-weight:400;font-size:15px}
+  .badge-row{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted)}
   .badge.active{border-color:var(--glow);color:var(--glow);background:rgba(0,201,167,.05)}
-  .answer-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:16px;min-height:80px}
-  .answer-text{font-size:18px;line-height:1.6;color:var(--text)}
-  .answer-text.empty{color:var(--muted);font-size:14px;font-family:'Share Tech Mono',monospace}
-  .btn{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;padding:14px 32px;border-radius:6px;border:none;cursor:pointer;transition:all .2s;text-transform:uppercase}
+  .badge.warn{border-color:var(--glow2);color:var(--glow2)}
+  .badge.danger{border-color:var(--danger);color:var(--danger)}
+  .answer-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:14px;min-height:70px}
+  .answer-text{font-size:17px;line-height:1.6;color:var(--text)}
+  .answer-text.empty{color:var(--muted);font-size:13px;font-family:'Share Tech Mono',monospace}
+  .btn{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;padding:12px 28px;border-radius:6px;border:none;cursor:pointer;transition:all .2s;text-transform:uppercase}
   .btn-approve{background:var(--glow);color:#000}
-  .btn-approve:hover{background:#00e5be;transform:translateY(-1px)}
+  .btn-approve:hover{background:#00e5be}
   .btn-decline{background:transparent;color:var(--danger);border:1px solid var(--danger)}
-  .btn-decline:hover{background:rgba(255,71,87,.1)}
-  .btn-main{width:100%;padding:20px;font-size:20px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:3px;text-transform:uppercase;transition:all .2s;margin-bottom:10px}
+  .btn-neutral{background:transparent;border:1px solid var(--muted);color:var(--muted)}
+  .btn-main{width:100%;padding:18px;font-size:18px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:3px;text-transform:uppercase;transition:all .2s;margin-bottom:8px}
   .btn-main:hover{border-color:var(--glow);color:var(--glow)}
   .btn-main.active{border-color:var(--danger);color:var(--danger);background:rgba(255,71,87,.05)}
   .btn-main:disabled{opacity:.4;cursor:not-allowed}
-  .btn-secondary{width:100%;padding:14px;font-size:16px;border-radius:8px;background:transparent;border:1px solid rgba(0,201,167,.4);color:var(--glow);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .2s;margin-bottom:10px}
-  .btn-secondary:hover{background:rgba(0,201,167,.1)}
-  .btn-secondary:disabled{opacity:.4;cursor:not-allowed}
-  .btn-birthday{width:100%;padding:14px;font-size:16px;border-radius:8px;background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.4);color:var(--glow2);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .2s;margin-bottom:16px}
-  .btn-birthday:hover{background:rgba(240,165,0,.2)}
-  .cheat-sheet{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
-  .cheat-row{display:flex;gap:12px;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03)}
-  .cheat-row:last-child{border-bottom:none}
-  .cheat-phrase{font-family:'Share Tech Mono',monospace;color:var(--glow);flex:0 0 210px}
-  .cheat-action{color:var(--muted)}
-  .stats-row{display:flex;gap:12px;margin-bottom:16px}
-  .stat-box{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center}
-  .stat-number{font-size:28px;font-weight:700;color:var(--glow);font-family:'Share Tech Mono',monospace;line-height:1}
-  .stat-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:4px}
-  .log-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;max-height:150px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:16px}
+  .btn-row{display:flex;gap:8px;margin-bottom:8px}
+  .btn-sub{flex:1;padding:11px;font-size:12px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+  .btn-sub:hover{border-color:var(--glow);color:var(--glow)}
+  .btn-sub:disabled{opacity:.3;cursor:not-allowed}
+  .btn-birthday{width:100%;padding:12px;font-size:14px;border-radius:8px;background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.3);color:var(--glow2);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .2s;margin-bottom:8px}
+  .btn-kill{width:100%;padding:12px;font-size:14px;border-radius:8px;background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.3);color:var(--danger);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all .2s;margin-bottom:14px}
+  .wake-guide{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px}
+  .wake-row{display:flex;gap:12px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03)}
+  .wake-row:last-child{border-bottom:none}
+  .wake-phrase{font-family:'Share Tech Mono',monospace;color:var(--glow);flex:0 0 220px}
+  .wake-action{color:var(--muted)}
+  .stats-row{display:flex;gap:10px;margin-bottom:14px}
+  .stat-box{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center}
+  .stat-number{font-size:24px;font-weight:700;color:var(--glow);font-family:'Share Tech Mono',monospace;line-height:1}
+  .stat-label{font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:4px}
+  .log-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;max-height:140px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:14px}
   .log-entry{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03)}
   .log-entry.good{color:var(--glow)}
   .log-entry.warn{color:var(--glow2)}
   .log-entry.bad{color:var(--danger)}
-  .config-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
-  .config-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-  .config-label{font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;width:120px;flex-shrink:0}
-  .config-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 12px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none}
+  .log-entry.cmd{color:#4ecdc4}
+  .config-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:14px}
+  .config-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .config-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;width:110px;flex-shrink:0}
+  .config-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none}
   .config-input:focus{border-color:var(--glow)}
-  .footer{text-align:center;padding:20px 0;font-size:11px;letter-spacing:2px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+  .footer{text-align:center;padding:16px 0;font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Share Tech Mono',monospace}
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="header">
-    <div class="logo-text">The Good Neighbor Guard</div>
-    <div class="title">VERA<span>CORE</span> VOICE</div>
-    <div class="tagline">Truth · Safety · We Got Your Back</div>
+<div class="header">
+  <div class="logo-text">The Good Neighbor Guard</div>
+  <div class="title">VERA<span>CORE</span> VOICE</div>
+  <div class="tagline">Truth · Safety · We Got Your Back</div>
+</div>
+
+<div class="config-panel" id="config-panel">
+  <div class="panel-label" style="margin-bottom:12px">Configuration</div>
+  <div class="config-row"><div class="config-label">Veracore URL</div><input class="config-input" id="veracore-url" type="text" value="https://veracore.onrender.com"></div>
+  <div class="config-row"><div class="config-label">OpenAI Key</div><input class="config-input" id="openai-key" type="password" placeholder="sk-..."></div>
+  <div class="config-row"><div class="config-label">Groq Key</div><input class="config-input" id="groq-key" type="password" placeholder="gsk_..."></div>
+  <button class="btn btn-approve" onclick="saveConfig()" style="width:100%;margin-top:4px">Save &amp; Initialize</button>
+</div>
+
+<div class="mode-bar LOCKED" id="mode-bar"><div class="mode-dot"></div><span id="mode-text">STANDBY — Say "Veracore this is Chris" to begin</span></div>
+
+<div class="status-bar"><div class="status-dot" id="status-dot"></div><div id="status-text">Waiting for configuration...</div></div>
+
+<div class="announce-box" id="announce-box">
+  <div class="announce-text">Chris, I have that one.</div>
+  <div class="announce-question" id="announce-question"></div>
+  <div class="announce-meta" id="announce-meta"></div>
+  <div class="announce-buttons">
+    <button class="btn btn-approve" onclick="deliverNow()">&#9654; Answer It</button>
+    <button class="btn btn-decline" onclick="takeIt()">&#10007; I'll Take It</button>
+    <button class="btn btn-neutral" onclick="skipToNext()">&#8594; Skip</button>
   </div>
+</div>
 
-  <div class="config-panel" id="config-panel">
-    <div class="panel-label">Configuration</div>
-    <div class="config-row"><div class="config-label">Veracore URL</div><input class="config-input" id="veracore-url" type="text" value="https://veracore.onrender.com"></div>
-    <div class="config-row"><div class="config-label">OpenAI Key</div><input class="config-input" id="openai-key" type="password" placeholder="sk-..."></div>
-    <div class="config-row"><div class="config-label">Groq Key</div><input class="config-input" id="groq-key" type="password" placeholder="gsk_..."></div>
-    <button class="btn btn-approve" onclick="saveConfig()" style="width:100%;margin-top:4px">Save &amp; Start</button>
+<div class="queue-panel">
+  <div class="queue-header"><div class="panel-label">Question Queue</div><div id="queue-meta" style="font-size:11px;color:var(--muted);font-family:'Share Tech Mono',monospace">0 waiting</div></div>
+  <div id="queue-list"><div class="queue-empty">No questions queued.</div></div>
+</div>
+
+<div class="main-panel">
+  <div class="panel-label" style="margin-bottom:8px">Last Heard</div>
+  <div class="heard-text empty" id="heard-text">Waiting...</div>
+  <div class="badge-row">
+    <div class="badge" id="match-badge">No Match</div>
+    <div class="badge" id="confidence-badge">Confidence: —</div>
+    <div class="badge" id="filter-badge">Filter: —</div>
   </div>
+</div>
 
-  <div class="status-bar">
-    <div class="status-dot" id="status-dot"></div>
-    <div id="status-text">Enter your API keys above to begin.</div>
-  </div>
+<div class="answer-panel">
+  <div class="panel-label" style="margin-bottom:8px">Verified Answer</div>
+  <div class="answer-text empty" id="answer-text">No answer yet.</div>
+</div>
 
-  <div class="announce-box" id="announce-box">
-    <div class="announce-text">Chris, I have that one.</div>
-    <div class="announce-question" id="announce-question"></div>
-    <div class="announce-buttons">
-      <button class="btn btn-approve" onclick="deliverNow()">&#9654; Answer It</button>
-      <button class="btn btn-decline" onclick="takeIt()">&#10007; I'll Take It</button>
-    </div>
-  </div>
+<button class="btn-main" id="main-btn" onclick="toggleListening()" disabled>Start Session</button>
+<div class="btn-row">
+  <button class="btn-sub" id="what-btn" onclick="whatDoYouHave()" disabled>&#127908; What Do You Have?</button>
+  <button class="btn-sub" id="deliver-btn" onclick="deliverNow()" disabled>&#9654; Answer It</button>
+  <button class="btn-sub" id="skip-btn" onclick="skipToNext()" disabled>&#8594; Next</button>
+</div>
+<button class="btn-birthday" onclick="triggerBirthday()">&#127874; Birthday Opener</button>
+<button class="btn-kill" onclick="killSwitch()">&#9632; CHRIS SAYS STOP</button>
 
-  <div class="queue-panel">
-    <div class="panel-label">Question Queue &mdash; <span id="queue-count">0</span> waiting</div>
-    <div id="queue-list"><div class="queue-empty">No questions queued yet.</div></div>
-  </div>
+<div class="wake-guide">
+  <div class="panel-label" style="margin-bottom:10px">Voice Commands</div>
+  <div class="wake-row"><div class="wake-phrase">"Veracore this is Chris"</div><div class="wake-action">Chris talking mode — ignores all input</div></div>
+  <div class="wake-row"><div class="wake-phrase">"Any question answered"</div><div class="wake-action">Start collecting audience questions</div></div>
+  <div class="wake-row"><div class="wake-phrase">"Stop listening"</div><div class="wake-action">Stop collecting, finish processing</div></div>
+  <div class="wake-row"><div class="wake-phrase">"Go ahead and start"</div><div class="wake-action">Begin delivering answers</div></div>
+  <div class="wake-row"><div class="wake-phrase">"What do you have"</div><div class="wake-action">Veracore reads next question aloud</div></div>
+  <div class="wake-row"><div class="wake-phrase">"Answer their question"</div><div class="wake-action">Deliver current answer</div></div>
+  <div class="wake-row"><div class="wake-phrase">"I'll take it"</div><div class="wake-action">You answer — "All yours Chris"</div></div>
+  <div class="wake-row"><div class="wake-phrase">"Next question"</div><div class="wake-action">Skip to next</div></div>
+  <div class="wake-row"><div class="wake-phrase">"Chris says stop"</div><div class="wake-action">&#9632; KILL — everything stops instantly</div></div>
+</div>
 
-  <div class="main-panel">
-    <div class="panel-label">Last Heard</div>
-    <div class="heard-text empty" id="heard-text">Waiting for question...</div>
-    <div class="match-row">
-      <div class="badge" id="match-badge">No Match</div>
-      <div class="badge" id="confidence-badge">Confidence: &mdash;</div>
-    </div>
-  </div>
+<div class="stats-row">
+  <div class="stat-box"><div class="stat-number" id="answers-count">0</div><div class="stat-label">Answered</div></div>
+  <div class="stat-box"><div class="stat-number" id="handoffs-count" style="color:var(--glow2)">0</div><div class="stat-label">Handoffs</div></div>
+  <div class="stat-box"><div class="stat-number" id="heard-count" style="color:var(--muted)">0</div><div class="stat-label">Heard</div></div>
+  <div class="stat-box"><div class="stat-number" id="filtered-count" style="color:var(--danger)">0</div><div class="stat-label">Filtered</div></div>
+</div>
 
-  <div class="answer-panel">
-    <div class="panel-label">Verified Answer</div>
-    <div class="answer-text empty" id="answer-text">No answer yet.</div>
-  </div>
-
-  <button class="btn-main" id="main-btn" onclick="toggleListening()" disabled>Start Listening</button>
-  <button class="btn-secondary" id="what-btn" onclick="whatDoYouHave()" disabled>&#127908; What Do You Have, Veracore?</button>
-  <button class="btn-birthday" onclick="triggerBirthday()">&#127874; Birthday Opener</button>
-
-  <div class="cheat-sheet">
-    <div class="panel-label">Your Voice Commands</div>
-    <div class="cheat-row"><div class="cheat-phrase">"What do you have"</div><div class="cheat-action">Veracore reads the next queued question aloud</div></div>
-    <div class="cheat-row"><div class="cheat-phrase">"Go ahead" / "Answer that"</div><div class="cheat-action">Veracore delivers the answer</div></div>
-    <div class="cheat-row"><div class="cheat-phrase">"I'll take it" / "Never mind"</div><div class="cheat-action">You answer it, Veracore says "All yours Chris"</div></div>
-    <div class="cheat-row"><div class="cheat-phrase">"Next question"</div><div class="cheat-action">Skip to the next queued question</div></div>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-box"><div class="stat-number" id="answers-count">0</div><div class="stat-label">Answers Given</div></div>
-    <div class="stat-box"><div class="stat-number" id="handoffs-count" style="color:var(--glow2)">0</div><div class="stat-label">Handoffs</div></div>
-    <div class="stat-box"><div class="stat-number" id="questions-count" style="color:var(--muted)">0</div><div class="stat-label">Heard</div></div>
-  </div>
-
-  <div class="panel-label" style="margin:0 0 8px">System Log</div>
-  <div class="log-panel" id="log-panel"></div>
-  <div class="footer">veracore-voice &middot; The Good Neighbor Guard &middot; Truth &middot; Safety &middot; We Got Your Back</div>
+<div class="panel-label" style="margin:0 0 8px">System Log</div>
+<div class="log-panel" id="log-panel"></div>
+<div class="footer">Veracore Voice v1.1 &middot; Co-Presenter Protocol &middot; The Good Neighbor Guard</div>
 </div>
 
 <script>
+// ── Knowledge Base ─────────────────────────────────────────────────────────
 const KB=[
-  {id:"kb_001",keywords:["accurate","know","correct","verify","trust","reliable"],spoken_answer:"Every answer I give passes through multiple AI models that check each other's work. If they disagree, confidence drops and I say so. I don't guess. I verify.",confidence:0.75},
-  {id:"kb_002",keywords:["different","chatgpt","other ai","unique","better","special"],spoken_answer:"Most AI gives you one answer from one model. I run the question through multiple models, then challenge my own answer before I speak. That's the difference between a response and a verified response.",confidence:0.75},
-  {id:"kb_003",keywords:["confident","decide","threshold","when","score","percentage"],spoken_answer:"I use a confidence score. If my models agree and the evidence is strong, confidence is high. If they disagree or evidence is weak, I tell Chris and I tell you that I am not certain.",confidence:0.75},
-  {id:"kb_004",keywords:["fool","trick","manipulate","wrong","lie","bias","cheat"],spoken_answer:"Any system can be challenged. What makes me different is that I have an adversarial layer, a model whose entire job is to find flaws in my answer before it reaches you. I am harder to fool because I argue with myself first.",confidence:0.75},
-  {id:"kb_005",keywords:["disagree","conflict","models","argue","contradict","fight"],spoken_answer:"When my models disagree, I don't pick a winner and hope for the best. Confidence drops, I flag the uncertainty, and I hand it back to Chris. Disagreement is not failure, it is honesty.",confidence:0.75},
-  {id:"kb_birthday",keywords:["30s","30","birthday","convince","younger","age"],spoken_answer:"Chris I ran verification on that claim. Confidence score: extremely low.",confidence:0.07}
+  {id:"kb_001",keywords:["accurate","know","correct","verify","trust","reliable"],spoken_answer:"Every answer I give passes through multiple AI models that check each other's work. If they disagree, confidence drops and I say so. I don't guess. I verify.",confidence:0.82},
+  {id:"kb_002",keywords:["different","chatgpt","other ai","unique","better","special"],spoken_answer:"Most AI gives you one answer from one model. I run the question through multiple models, then challenge my own answer before I speak. That's the difference between a response and a verified response.",confidence:0.82},
+  {id:"kb_003",keywords:["confident","decide","threshold","when","score","percentage"],spoken_answer:"I use a confidence score. If my models agree and the evidence is strong, confidence is high. If they disagree or evidence is weak, I tell Chris and I tell you that I am not certain.",confidence:0.82},
+  {id:"kb_004",keywords:["fool","trick","manipulate","wrong","lie","bias","cheat"],spoken_answer:"Any system can be challenged. What makes me different is that I have an adversarial layer, a model whose entire job is to find flaws in my answer before it reaches you. I am harder to fool because I argue with myself first.",confidence:0.82},
+  {id:"kb_005",keywords:["disagree","conflict","models","argue","contradict","fight"],spoken_answer:"When my models disagree, I don't pick a winner and hope for the best. Confidence drops, I flag the uncertainty, and I hand it back to Chris. Disagreement is not failure, it is honesty.",confidence:0.82},
+  {id:"kb_birthday",keywords:["30s","30","birthday","convince","younger","age"],spoken_answer:"Chris, I ran verification on that claim. Confidence score: extremely low.",confidence:0.07}
 ];
 
-const CMD_WHAT=["what do you have","what question","what you got","whats next","veracore what"];
-const CMD_DELIVER=["go ahead","answer that","answer it","veracore go","deliver that"];
-const CMD_SKIP=["next question","skip that","move on","next one"];
-const CMD_TAKE=["i'll take it","i will take it","never mind","nevermind","i got this"];
-const KEYWORD_MIN=2;
+// ── Wake words ─────────────────────────────────────────────────────────────
+const WAKE={
+  CHRIS_TALKING:["veracore this is chris","this is chris talking","veracore listen chris"],
+  COLLECTING:["any question answered","take the questions","start collecting","everyone throw","open for questions"],
+  STOP_COLLECTING:["stop listening","stop collecting","process the questions","veracore stop"],
+  START_DELIVERING:["go ahead and start","start answering","begin answering","veracore go ahead"],
+  WHAT:["what do you have","what question","what you got","veracore what"],
+  DELIVER:["answer their question","answer that","go ahead","answer it","veracore answer"],
+  TAKE:["i'll take it","i will take it","never mind","nevermind","i got this"],
+  SKIP:["next question","skip that","move on","next one"],
+  KILL:["chris says stop","stop everything","kill veracore"]
+};
 
-let isListening=false,isSpeaking=false,mediaRecorder=null,micStream=null;
-let audioChunks=[],questionsCount=0,answersCount=0,handoffsCount=0;
+// ── Noise filter lists ─────────────────────────────────────────────────────
+const QUESTION_STARTERS=["what","how","why","when","where","who","which","can","does","is","are","will","would","could","should","do","did","has","have","tell","explain","describe"];
+const CHRIS_INDICATORS=["hey chris","chris can you","chris what","chris how","you built","you created","how long did you","how did you","your company","your system"];
+const NOISE_PATTERNS=["thank you","thanks","okay","alright","yeah","yep","nope","sure","cool","great","awesome","wow","oh","uh","um","hmm","right","exactly","sounds good","got it","hello","hi","hey","bye","goodbye","nice","interesting","really","seriously","actually","basically","literally"];
+
+// ── State ──────────────────────────────────────────────────────────────────
+const MODES={STANDBY:'STANDBY',CHRIS_TALKING:'CHRIS_TALKING',COLLECTING:'COLLECTING',PROCESSING:'PROCESSING',DELIVERING:'DELIVERING',FOLLOWUP:'FOLLOWUP'};
+let mode=MODES.STANDBY;
+let isListening=false,isSpeaking=false,micMuted=false;
+let mediaRecorder=null,micStream=null,audioChunks=[];
 let cfg={url:'',openai:'',groq:''};
-let queue=[],pendingDelivery=null;
+let queue=[],pendingDelivery=null,currentFollowUp=null;
+let heardCount=0,answersCount=0,handoffsCount=0,filteredCount=0;
 
-function detectCommand(text){
+const QUEUE_MAX=5;
+const QUEUE_TTL_MS=8*60*1000;
+const MIN_WORDS=8;          // minimum words to be considered a question
+const CONF_SPEAK=0.65;
+const CONF_HEDGE=0.40;
+const SIM_THRESHOLD=0.70;
+
+// ── Question filter — the noise gate ──────────────────────────────────────
+function filterQuestion(text){
+  const t=text.toLowerCase().trim();
+  const words=t.split(/\s+/).filter(w=>w.length>1); // ignore single chars
+
+  // Too short
+  if(words.length<MIN_WORDS) return{pass:false,reason:'too_short'};
+
+  // Pure noise/filler
+  if(NOISE_PATTERNS.some(n=>t===n||t===n+'.'||t===n+'!')) return{pass:false,reason:'noise'};
+
+  // Garbled — too many non-alpha characters
+  const alphaRatio=(t.match(/[a-z]/g)||[]).length/t.length;
+  if(alphaRatio<0.7) return{pass:false,reason:'garbled'};
+
+  // Repetitive words — signs of mic noise ("the the the the")
+  const uniqueWords=new Set(words);
+  if(uniqueWords.size/words.length<0.4) return{pass:false,reason:'repetitive'};
+
+  // Chris-directed — goes to bottom of queue
+  if(CHRIS_INDICATORS.some(c=>t.includes(c))) return{pass:true,reason:'chris_addressed',priority:'low'};
+
+  // Must start with a question word OR end with ?
+  const startsWithQ=QUESTION_STARTERS.some(w=>words[0]===w);
+  const endsWithQ=t.endsWith('?');
+  if(!startsWithQ&&!endsWithQ) return{pass:false,reason:'not_a_question'};
+
+  return{pass:true,reason:'valid',priority:'normal'};
+}
+
+// ── Similarity check for deduplication ────────────────────────────────────
+function similarity(a,b){
+  const wa=new Set(a.toLowerCase().split(/\s+/));
+  const wb=new Set(b.toLowerCase().split(/\s+/));
+  const inter=[...wa].filter(w=>wb.has(w)).length;
+  return inter/new Set([...wa,...wb]).size;
+}
+
+function findDuplicate(question){
+  return queue.find(q=>q.status!=='DELIVERED'&&similarity(question,q.question)>=SIM_THRESHOLD)||null;
+}
+
+// ── Wake word detection ────────────────────────────────────────────────────
+function detectWake(text){
   const t=text.toLowerCase();
-  if(CMD_WHAT.some(c=>t.includes(c)))return'WHAT';
-  if(CMD_DELIVER.some(c=>t.includes(c)))return'DELIVER';
-  if(CMD_SKIP.some(c=>t.includes(c)))return'SKIP';
-  if(CMD_TAKE.some(c=>t.includes(c)))return'TAKE';
+  for(const[cmd,phrases]of Object.entries(WAKE)){
+    if(phrases.some(p=>t.includes(p))) return cmd;
+  }
   return null;
 }
 
-function findMatch(question){
-  const q=question.toLowerCase();
-  let best=null,top=0;
-  for(const e of KB){
-    const score=e.keywords.filter(kw=>q.includes(kw)).length;
-    if(score>=KEYWORD_MIN&&score>top){top=score;best=e;}
-  }
-  return best;
+// ── Mode control ───────────────────────────────────────────────────────────
+function setMode(m){
+  mode=m;
+  const bar=document.getElementById('mode-bar');
+  const labels={
+    STANDBY:'STANDBY — Listening for your command',
+    CHRIS_TALKING:'CHRIS TALKING — Ignoring audience input',
+    COLLECTING:'COLLECTING QUESTIONS — Audience mode active',
+    PROCESSING:'PROCESSING — Veracore verifying answers',
+    DELIVERING:'DELIVERING ANSWERS — Q&A mode active',
+    FOLLOWUP:'FOLLOW-UP MODE — One follow-up allowed'
+  };
+  bar.className='mode-bar '+(m==='COLLECTING'?'COLLECTING':'LOCKED');
+  document.getElementById('mode-text').textContent=labels[m]||m;
+  log('Mode: '+m,'cmd');
 }
 
-function addToQueue(question,match){
-  const item={id:'q'+Date.now(),question,match,status:'PROCESSING',spoken:null,confidence:null};
-  queue.push(item);
+// ── Command handler ────────────────────────────────────────────────────────
+function handleCommand(cmd){
+  log('CMD: '+cmd,'cmd');
+  if(cmd==='KILL'){killSwitch();return;}
+  if(cmd==='CHRIS_TALKING'){setMode(MODES.CHRIS_TALKING);speak("Ready Chris. I am listening but will only collect audience questions.",false);return;}
+  if(cmd==='COLLECTING'){setMode(MODES.COLLECTING);speak("Got it. I am now collecting questions from the audience.",false);return;}
+  if(cmd==='STOP_COLLECTING'){
+    setMode(MODES.PROCESSING);
+    const qc=queue.filter(q=>q.status==='PROCESSING'||q.status==='READY').length;
+    if(qc===0){speak("No questions were collected Chris.",false);setMode(MODES.STANDBY);}
+    else speak("Got it. I have "+qc+" question"+(qc!==1?"s":"")+" and I am verifying the answers now.",false);
+    return;
+  }
+  if(cmd==='START_DELIVERING'){setMode(MODES.DELIVERING);whatDoYouHave();return;}
+  if(cmd==='WHAT'){whatDoYouHave();return;}
+  if(cmd==='DELIVER'){deliverNow();return;}
+  if(cmd==='TAKE'){takeIt();return;}
+  if(cmd==='SKIP'){skipToNext();return;}
+}
+
+// ── Queue ──────────────────────────────────────────────────────────────────
+function addToQueue(question,match,priority){
+  priority=priority||'normal';
+  pruneExpired();
+  const active=queue.filter(q=>q.status!=='DELIVERED');
+  if(active.length>=QUEUE_MAX){log('Queue full ('+QUEUE_MAX+'). Dropped.','warn');return null;}
+  const dup=findDuplicate(question);
+  if(dup){dup.duplicateCount=(dup.duplicateCount||1)+1;renderQueue();log('Duplicate merged (x'+dup.duplicateCount+').','warn');return null;}
+  const item={id:'q'+Date.now(),question,match,priority,status:'PROCESSING',spoken:null,confidence:null,duplicateCount:1,timestamp:Date.now(),followUpUsed:false};
+  if(priority==='low')queue.push(item);
+  else queue.splice(queue.findLastIndex(q=>q.priority!=='low'&&q.status!=='DELIVERED')+1,0,item);
   renderQueue();
-  log('Queued: "'+question.substring(0,50)+'"','');
+  log('Queued'+(priority==='low'?' [Chris-addr]':'')+': "'+question.substring(0,50)+'"','');
   fetchVeracore(item);
+  return item;
+}
+
+function pruneExpired(){
+  const now=Date.now();
+  queue.forEach(item=>{if(item.status!=='DELIVERED'&&(now-item.timestamp)>QUEUE_TTL_MS){item.status='DELIVERED';log('Expired: "'+item.question.substring(0,30)+'"','warn');}});
 }
 
 async function fetchVeracore(item){
+  const to=setTimeout(()=>{if(item.status==='PROCESSING'&&!isSpeaking)speak("One moment.",false);},2500);
   try{
     const res=await fetch(cfg.url+'/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:item.question})});
+    clearTimeout(to);
     if(!res.ok)throw new Error('Veracore '+res.status);
     const data=await res.json();
     const answer=data.answer||'';
     if(!answer){item.status='FAILED';renderQueue();return;}
     item.spoken=item.match?item.match.spoken_answer:formatForSpeech(answer);
-    item.confidence=data.confidence||0.75;
+    item.confidence=parseFloat(data.confidence)||0.75;
     item.status='READY';
     renderQueue();
-    log('READY: "'+item.question.substring(0,40)+'" ('+Math.round(item.confidence*100)+'%)','good');
+    log('READY ('+Math.round(item.confidence*100)+'%): "'+item.question.substring(0,40)+'"','good');
+    if(mode===MODES.PROCESSING){
+      const still=queue.filter(q=>q.status==='PROCESSING').length;
+      if(still===0){
+        const rc=queue.filter(q=>q.status==='READY').length;
+        setMode(MODES.DELIVERING);
+        speak("Hey Chris, I have all "+rc+" answer"+(rc!==1?"s":"")+" ready. Say go ahead and start whenever you are ready.",false);
+      }
+    }
   }catch(err){
-    item.status='FAILED';renderQueue();
+    clearTimeout(to);item.status='FAILED';renderQueue();
     log('Veracore error: '+err.message,'bad');
   }
 }
 
+// ── Delivery ───────────────────────────────────────────────────────────────
 function whatDoYouHave(){
   const ready=queue.find(q=>q.status==='READY');
   const processing=queue.find(q=>q.status==='PROCESSING');
-  if(!ready&&!processing){speak("I don't have any questions queued right now, Chris.",false);return;}
-  if(!ready&&processing){speak("I'm still verifying some questions. Give me just a moment.",false);return;}
+  if(!ready&&!processing){speak("I don't have any questions queued right now Chris.",false);return;}
+  if(!ready&&processing){speak("I am still verifying. Give me just a moment.",false);return;}
   pendingDelivery=ready;
-  document.getElementById('announce-box').classList.add('visible');
-  document.getElementById('announce-question').textContent='"'+ready.question+'"';
   const rc=queue.filter(q=>q.status==='READY').length;
   const tc=queue.filter(q=>q.status!=='DELIVERED').length;
-  speak("Someone asked: "+ready.question+" — I have "+rc+" answer"+(rc!==1?"s":"")+" ready out of "+tc+" questions total. Should I answer that one?",false);
-  log('Announced: "'+ready.question+'"','good');
+  const dup=ready.duplicateCount>1?'. '+ready.duplicateCount+' people asked this one':'';
+  document.getElementById('announce-box').classList.add('visible');
+  document.getElementById('announce-question').textContent='"'+ready.question+'"';
+  document.getElementById('announce-meta').textContent=rc+' answer'+(rc!==1?'s':'')+' ready of '+tc+' total'+dup;
+  speak((ready.duplicateCount>1?'The most popular question I have is: ':'The next question I have is: ')+ready.question+(ready.duplicateCount>1?'. '+ready.duplicateCount+' people asked this.':''),false);
+  document.getElementById('deliver-btn').disabled=false;
+  document.getElementById('skip-btn').disabled=false;
 }
 
 function deliverNow(){
@@ -257,65 +401,73 @@ function deliverNow(){
 function takeIt(){
   document.getElementById('announce-box').classList.remove('visible');
   pendingDelivery=null;
-  handoffsCount++;
-  document.getElementById('handoffs-count').textContent=handoffsCount;
+  handoffsCount++;document.getElementById('handoffs-count').textContent=handoffsCount;
   const item=queue.find(q=>q.status==='READY');
   if(item)item.status='DELIVERED';
-  renderQueue();
-  speak("All yours, Chris.",false);
+  renderQueue();speak("All yours Chris.",false);
   log('Chris took it.','warn');
   if(isListening)setTimeout(recordChunk,800);
-}
-
-function deliverItem(item){
-  if(!item||!item.spoken)return;
-  item.status='DELIVERED';renderQueue();
-  document.getElementById('answer-text').textContent=item.spoken;
-  document.getElementById('answer-text').classList.remove('empty');
-  answersCount++;
-  document.getElementById('answers-count').textContent=answersCount;
-  speak(item.spoken+" Does that answer your question?",true);
-  log('Delivered answer.','good');
 }
 
 function skipToNext(){
   document.getElementById('announce-box').classList.remove('visible');
   pendingDelivery=null;
-  const current=queue.find(q=>q.status==='READY');
-  if(current)current.status='DELIVERED';
+  const cur=queue.find(q=>q.status==='READY');
+  if(cur)cur.status='DELIVERED';
   renderQueue();
   const next=queue.find(q=>q.status==='READY');
   if(next){
     pendingDelivery=next;
+    const rc=queue.filter(q=>q.status==='READY').length;
     document.getElementById('announce-box').classList.add('visible');
     document.getElementById('announce-question').textContent='"'+next.question+'"';
-    speak("Someone else asked: "+next.question+" Should I answer that one?",false);
+    document.getElementById('announce-meta').textContent=rc+' answer'+(rc!==1?'s':'')+' remaining';
+    speak("The next question is: "+next.question,false);
   }else{
-    speak("That was the last ready answer, Chris.",false);
+    speak("That was the last answer I had ready Chris.",false);
+    setMode(MODES.STANDBY);
   }
 }
 
-function renderQueue(){
-  const active=queue.filter(q=>q.status!=='DELIVERED');
-  document.getElementById('queue-count').textContent=active.length;
-  const list=document.getElementById('queue-list');
-  if(!active.length){list.innerHTML='<div class="queue-empty">No questions queued.</div>';return;}
-  list.innerHTML=active.map(item=>{
-    const conf=item.confidence?Math.round(item.confidence*100)+'%':'...';
-    return'<div class="queue-item"><div class="queue-dot '+item.status+'"></div><div class="queue-text">'+escHtml(item.question)+'</div><div class="queue-status '+item.status+'">'+(item.status==='READY'?'&#10003; '+conf:item.status)+'</div></div>';
-  }).join('');
+function deliverItem(item){
+  if(!item||!item.spoken)return;
+  item.status='DELIVERING';renderQueue();
+  document.getElementById('answer-text').textContent=item.spoken;
+  document.getElementById('answer-text').classList.remove('empty');
+  answersCount++;document.getElementById('answers-count').textContent=answersCount;
+  let spoken='';
+  if(item.confidence>=CONF_SPEAK) spoken=item.spoken+" Does that answer your question?";
+  else if(item.confidence>=CONF_HEDGE) spoken="I'm not fully certain, but — "+item.spoken+" Does that answer your question?";
+  else{
+    spoken="I heard that question but I don't have a verified answer I trust enough to share. Chris, do you want to take this one?";
+    handoffsCount++;document.getElementById('handoffs-count').textContent=handoffsCount;
+    item.status='DELIVERED';renderQueue();speak(spoken,false);return;
+  }
+  setMode(MODES.FOLLOWUP);
+  speak(spoken,true);
+  log('Delivered ('+Math.round(item.confidence*100)+'%).','good');
+  item.status='DELIVERED';renderQueue();
+  currentFollowUp=item;
 }
 
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function killSwitch(){
+  if(window._audio){window._audio.pause();window._audio=null;}
+  isSpeaking=false;micMuted=false;pendingDelivery=null;currentFollowUp=null;
+  document.getElementById('announce-box').classList.remove('visible');
+  setMode(MODES.STANDBY);
+  log('KILL WORD fired.','bad');
+  speak("Understood, Chris.",false);
+}
 
 function triggerBirthday(){
   const b=KB.find(k=>k.id==='kb_birthday');
   document.getElementById('answer-text').textContent=b.spoken_answer;
   document.getElementById('answer-text').classList.remove('empty');
-  speak(b.spoken_answer,true);
+  speak(b.spoken_answer,false);
   log('Birthday opener fired.','good');
 }
 
+// ── Config ─────────────────────────────────────────────────────────────────
 function saveConfig(){
   cfg.url=document.getElementById('veracore-url').value.trim();
   cfg.openai=document.getElementById('openai-key').value.trim();
@@ -328,30 +480,30 @@ function saveConfig(){
   document.getElementById('config-panel').style.display='none';
   document.getElementById('main-btn').disabled=false;
   document.getElementById('what-btn').disabled=false;
-  setStatus('ready','Ready. Press Start Listening.');
-  log('Keys saved. Co-presenter mode ready.','good');
+  setStatus('ready','Ready. Press Start Session.');
+  log('Veracore Voice v1.1 ready. Co-Presenter Protocol active.','good');
 }
 
 window.addEventListener('load',()=>{
-  const url=localStorage.getItem('vc_url');
-  const openai=localStorage.getItem('vc_openai');
-  const groq=localStorage.getItem('vc_groq');
+  const url=localStorage.getItem('vc_url'),openai=localStorage.getItem('vc_openai'),groq=localStorage.getItem('vc_groq');
   if(url)document.getElementById('veracore-url').value=url;
   if(openai)document.getElementById('openai-key').value=openai;
   if(groq)document.getElementById('groq-key').value=groq;
   if(openai&&groq)saveConfig();
 });
 
+// ── Listening ──────────────────────────────────────────────────────────────
 async function toggleListening(){if(isListening)stopListening();else await startListening();}
 
 async function startListening(){
   try{
     micStream=await navigator.mediaDevices.getUserMedia({audio:true});
     isListening=true;
-    document.getElementById('main-btn').textContent='Stop Listening';
+    document.getElementById('main-btn').textContent='Stop Session';
     document.getElementById('main-btn').classList.add('active');
-    setStatus('listening','Listening — co-presenter mode active.');
-    log('Microphone active. Listening for questions.','good');
+    setMode(MODES.STANDBY);
+    setStatus('listening','Session active. Say "Veracore this is Chris" to begin.');
+    log('Session started. Mic active.','good');
     recordChunk();
   }catch(err){log('Mic error: '+err.message,'bad');setStatus('error','Mic access denied.');}
 }
@@ -360,26 +512,25 @@ function stopListening(){
   isListening=false;
   if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();
   if(micStream)micStream.getTracks().forEach(t=>t.stop());
-  document.getElementById('main-btn').textContent='Start Listening';
+  document.getElementById('main-btn').textContent='Start Session';
   document.getElementById('main-btn').classList.remove('active');
-  setStatus('ready','Stopped.');
+  setMode(MODES.STANDBY);setStatus('ready','Session stopped.');
 }
 
 function recordChunk(){
-  if(!isListening||isSpeaking)return;
+  if(!isListening||isSpeaking||micMuted)return;
   audioChunks=[];
   mediaRecorder=new MediaRecorder(micStream);
   mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
   mediaRecorder.onstop=processAudio;
   mediaRecorder.start();
-  setTimeout(()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();},5000);
+  setTimeout(()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();},4000);
 }
 
+// ── Transcribe + route ─────────────────────────────────────────────────────
 async function processAudio(){
-  if(!audioChunks.length||isSpeaking){if(isListening&&!isSpeaking)recordChunk();return;}
-  setStatus('processing','Transcribing...');
-  const blob=new Blob(audioChunks,{type:'audio/webm'});
-  audioChunks=[];
+  if(!audioChunks.length||isSpeaking||micMuted){if(isListening&&!isSpeaking&&!micMuted)recordChunk();return;}
+  const blob=new Blob(audioChunks,{type:'audio/webm'});audioChunks=[];
   try{
     const fd=new FormData();
     fd.append('file',blob,'audio.webm');
@@ -388,75 +539,133 @@ async function processAudio(){
     const res=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.groq},body:fd});
     const data=await res.json();
     const text=(data.text||'').trim();
-    if(!text||text.length<4){if(isListening)recordChunk();return;}
-    const cmd=detectCommand(text);
-    if(cmd){
-      log('Command: '+cmd,'warn');
-      if(cmd==='WHAT')whatDoYouHave();
-      if(cmd==='DELIVER')deliverNow();
-      if(cmd==='SKIP')skipToNext();
-      if(cmd==='TAKE')takeIt();
-      if(isListening)setTimeout(recordChunk,500);
-      return;
+    if(!text||text.length<3){if(isListening)recordChunk();return;}
+
+    // Garbled transcript check
+    const alphaRatio=(text.match(/[a-zA-Z]/g)||[]).length/text.length;
+    if(alphaRatio<0.6){
+      filteredCount++;document.getElementById('filtered-count').textContent=filteredCount;
+      log('Garbled transcript discarded.','warn');
+      if(isListening)recordChunk();return;
     }
-    questionsCount++;
-    document.getElementById('questions-count').textContent=questionsCount;
-    log('Heard: "'+text+'"','good');
+
     document.getElementById('heard-text').textContent=text;
     document.getElementById('heard-text').classList.remove('empty');
-    const match=findMatch(text);
-    if(match){
-      document.getElementById('match-badge').textContent=match.id;
-      document.getElementById('match-badge').classList.add('active');
-      document.getElementById('confidence-badge').textContent='Confidence: '+match.confidence;
-      document.getElementById('confidence-badge').classList.add('active');
-    }else{
-      document.getElementById('match-badge').textContent='Live Query';
-      document.getElementById('match-badge').classList.add('active');
-      document.getElementById('confidence-badge').textContent='Routing to Veracore...';
-      document.getElementById('confidence-badge').classList.add('active');
+    heardCount++;document.getElementById('heard-count').textContent=heardCount;
+
+    // Always check for commands first
+    const cmd=detectWake(text);
+    if(cmd){handleCommand(cmd);if(isListening)setTimeout(recordChunk,500);return;}
+
+    // Mode gating — only collect in these modes
+    if(mode===MODES.STANDBY||mode===MODES.CHRIS_TALKING){
+      if(isListening)setTimeout(recordChunk,300);return;
     }
-    addToQueue(text,match);
+
+    // Route to question filter
+    if(mode===MODES.COLLECTING||mode===MODES.PROCESSING||mode===MODES.DELIVERING){
+      routeQuestion(text);
+    }
+
+    if(mode===MODES.FOLLOWUP){
+      if(currentFollowUp&&!currentFollowUp.followUpUsed){
+        currentFollowUp.followUpUsed=true;
+        log('Follow-up detected.','warn');
+        const fuItem=addToQueue(text,findMatch(text),'followup');
+        speak("Let me check that follow-up.",false);
+        if(fuItem){
+          const chk=setInterval(()=>{if(fuItem.status==='READY'){clearInterval(chk);deliverItem(fuItem);}},500);
+          setTimeout(()=>clearInterval(chk),15000);
+        }
+      }else{setMode(MODES.DELIVERING);routeQuestion(text);}
+    }
+
     if(isListening)setTimeout(recordChunk,300);
   }catch(err){
-    log('Transcription error: '+err.message,'bad');
+    log('STT error: '+err.message,'bad');
     if(isListening)recordChunk();
   }
 }
 
+function routeQuestion(text){
+  const f=filterQuestion(text);
+  document.getElementById('filter-badge').textContent='Filter: '+f.reason;
+  document.getElementById('filter-badge').className='badge'+(f.pass?' active':' danger');
+
+  if(!f.pass){
+    filteredCount++;document.getElementById('filtered-count').textContent=filteredCount;
+    log('Filtered ('+f.reason+'): "'+text.substring(0,40)+'"','warn');
+    return;
+  }
+
+  const match=findMatch(text);
+  if(match){
+    document.getElementById('match-badge').textContent=match.id;
+    document.getElementById('match-badge').className='badge active';
+    document.getElementById('confidence-badge').textContent='KB: '+match.confidence;
+    document.getElementById('confidence-badge').className='badge active';
+  }else{
+    document.getElementById('match-badge').textContent='Live Query';
+    document.getElementById('match-badge').className='badge warn';
+    document.getElementById('confidence-badge').textContent='Routing live...';
+    document.getElementById('confidence-badge').className='badge warn';
+  }
+  addToQueue(text,match,f.priority||'normal');
+}
+
+function findMatch(question){
+  const q=question.toLowerCase();let best=null,top=0;
+  for(const e of KB){const s=e.keywords.filter(kw=>q.includes(kw)).length;if(s>=2&&s>top){top=s;best=e;}}
+  return best;
+}
+
+// ── TTS with echo prevention ───────────────────────────────────────────────
 async function speak(text,resumeAfter){
   if(!text||!cfg.openai)return;
-  isSpeaking=true;
+  isSpeaking=true;micMuted=true;
   if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
   setStatus('speaking','Speaking...');
   try{
     const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1',voice:'onyx',input:text})});
-    const blob=await res.blob();
-    const url=URL.createObjectURL(blob);
-    const audio=new Audio(url);
-    audio.play();
+    const blob=await res.blob();const url=URL.createObjectURL(blob);
+    const audio=new Audio(url);window._audio=audio;audio.play();
     audio.onended=()=>{
-      URL.revokeObjectURL(url);
-      isSpeaking=false;
-      if(isListening&&resumeAfter){setStatus('listening','Listening...');setTimeout(recordChunk,800);}
+      URL.revokeObjectURL(url);window._audio=null;isSpeaking=false;
+      setTimeout(()=>{micMuted=false;if(isListening&&resumeAfter){setStatus('listening','Listening...');recordChunk();}},1000);
     };
   }catch(err){
-    log('TTS error: '+err.message,'bad');
-    isSpeaking=false;
-    if(isListening&&resumeAfter)setTimeout(recordChunk,800);
+    log('TTS error: '+err.message,'bad');isSpeaking=false;
+    setTimeout(()=>{micMuted=false;if(isListening&&resumeAfter)recordChunk();},1000);
   }
 }
 
-function formatForSpeech(text){const s=text.match(/[^.!?]+[.!?]*/g)||[text];return s.slice(0,3).join(' ').trim();}
-function setStatus(type,msg){document.getElementById('status-dot').className='status-dot '+type;document.getElementById('status-text').textContent=msg;}
+// ── Render ─────────────────────────────────────────────────────────────────
+function renderQueue(){
+  const active=queue.filter(q=>q.status!=='DELIVERED');
+  const ready=active.filter(q=>q.status==='READY').length;
+  document.getElementById('queue-meta').textContent=active.length+' waiting, '+ready+' ready';
+  const list=document.getElementById('queue-list');
+  if(!active.length){list.innerHTML='<div class="queue-empty">No questions queued.</div>';return;}
+  list.innerHTML=active.map(item=>{
+    const conf=item.confidence?Math.round(item.confidence*100)+'%':'...';
+    const dup=item.duplicateCount>1?' (x'+item.duplicateCount+')':'';
+    const pri=item.priority==='low'?' [Chris]':item.priority==='followup'?' [FU]':'';
+    return'<div class="queue-item"><div class="queue-dot '+item.status+'"></div><div class="queue-text">'+escHtml(item.question)+dup+pri+'</div><div class="queue-status '+item.status+'">'+(item.status==='READY'?'&#10003; '+conf:item.status)+'</div></div>';
+  }).join('');
+}
+
+function formatForSpeech(t){const s=t.match(/[^.!?]+[.!?]*/g)||[t];return s.slice(0,3).join(' ').trim();}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function setStatus(type,msg){
+  if(msg===undefined){msg=type;type='ready';}
+  document.getElementById('status-dot').className='status-dot '+type;
+  document.getElementById('status-text').textContent=msg;
+}
 function log(msg,type){
-  const p=document.getElementById('log-panel');
-  const e=document.createElement('div');
+  const p=document.getElementById('log-panel'),e=document.createElement('div');
   const t=new Date().toLocaleTimeString('en-US',{hour12:false});
-  e.className='log-entry '+(type||'');
-  e.textContent=t+'  '+msg;
-  p.insertBefore(e,p.firstChild);
-  if(p.children.length>50)p.removeChild(p.lastChild);
+  e.className='log-entry '+(type||'');e.textContent=t+'  '+msg;
+  p.insertBefore(e,p.firstChild);if(p.children.length>60)p.removeChild(p.lastChild);
 }
 </script>
 </body>
