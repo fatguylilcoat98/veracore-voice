@@ -267,7 +267,9 @@ const WAKE={
   DELIVER:["answer their question","answer that","answer it","veracore answer"],
   TAKE:["i'll take it","i will take it","never mind","nevermind"],
   SKIP:["next question","skip that","next one"],
-  KILL:["chris says stop","stop everything","kill veracore"]
+  KILL:["chris says stop","stop everything","kill veracore"],
+  YES:["yes","yeah","yep","yup","that answers","yes it does","that's right","correct","perfect","got it","makes sense"],
+  NO:["no","nope","not really","not quite","can you explain","can you expand","tell me more","elaborate","go deeper","i don't understand","explain more"]
 };
 
 // ── Filter lists ──────────────────────────────────────────────────────────
@@ -421,6 +423,8 @@ function handleCommand(cmd){
   if(cmd==='DELIVER'){deliverNow();return;}
   if(cmd==='TAKE'){takeIt();return;}
   if(cmd==='SKIP'){skipToNext();return;}
+  if(cmd==='YES'){handleYes();return;}
+  if(cmd==='NO'){handleNo();return;}
 }
 
 // ── Delivery ──────────────────────────────────────────────────────────────
@@ -494,6 +498,42 @@ function deliverItem(item){
   log('Delivered ('+Math.round(item.confidence*100)+'%).','good');
   item.status='DELIVERED';renderQueue();
   currentFollowUp=item;
+}
+
+function handleYes(){
+  if(mode!==MODES.FOLLOWUP) return;
+  log('Follow-up: Yes — moving to next question.','good');
+  speak("Great. Let me get the next one.",false);
+  setTimeout(()=>{
+    setMode(MODES.DELIVERING);
+    whatDoYouHave();
+  },2000);
+}
+
+async function handleNo(){
+  if(mode!==MODES.FOLLOWUP) return;
+  log('Follow-up: No — expanding answer.','warn');
+  speak("Let me go deeper on that.",false);
+  // Get the last delivered item question
+  const lastDelivered=queue.filter(q=>q.status==='DELIVERED').pop();
+  if(!lastDelivered){speak("I don't have that question available to expand on. Chris, do you want to take it?",false);return;}
+  try{
+    const res=await fetch(cfg.url+'/ask',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({question:'Please provide a more detailed and thorough explanation for this question: '+lastDelivered.question})
+    });
+    if(!res.ok) throw new Error('Veracore '+res.status);
+    const data=await res.json();
+    const expanded=fmtSpeech(data.answer||'');
+    if(!expanded){speak("I wasn't able to expand on that one. Chris, want to add anything?",false);return;}
+    document.getElementById('answer-text').textContent=expanded;
+    speak(expanded+" Does that help clarify things?",true);
+    log('Expanded answer delivered.','good');
+  }catch(err){
+    log('Expand error: '+err.message,'bad');
+    speak("I had trouble expanding that answer. Chris, can you help?",false);
+  }
 }
 
 function killSwitch(){
