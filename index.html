@@ -679,33 +679,61 @@ function findMatch(question){
 }
 
 // ── TTS ───────────────────────────────────────────────────────────────────
+// ── Web Audio Context — reliable playback + precise onended ──────────────
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx||_audioCtx.state==='closed'){
+    _audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  }
+  if(_audioCtx.state==='suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
 async function speak(text,resumeAfter){
   if(!text||!cfg.openai)return;
   isSpeaking=true;micMuted=true;
   if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
   setStatus('speaking','Speaking...');
-  const safetyTimer=setTimeout(()=>{
-    log('Safety timeout — forcing mic back on.','warn');
-    isSpeaking=false;micMuted=false;
-    if(isListening){setStatus('listening','Listening...');recordChunk();}
-  },15000);
-  function release(){
-    clearTimeout(safetyTimer);
+
+  function done(){
     isSpeaking=false;
-    setTimeout(()=>{micMuted=false;if(isListening&&resumeAfter){setStatus('listening','Listening...');recordChunk();}},1000);
+    micMuted=false;
+    setStatus('listening','Listening...');
+    if(isListening) setTimeout(recordChunk,300);
+    log('Speech complete.','');
   }
+
   try{
-    const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1',voice:'onyx',input:text})});
-    const blob=await res.blob();const url=URL.createObjectURL(blob);
-    const audio=new Audio(url);window._aud=audio;
-    // Duration-based release for Bluetooth speakers where onended may not fire
-    const wordCount=(text.match(/[a-zA-Z]+/g)||[]).length;
-    const estMs=Math.max(2000,(wordCount/2.5)*1000)+2000;
-    const durRelease=setTimeout(()=>{if(isSpeaking){URL.revokeObjectURL(url);window._aud=null;release();}},estMs);
-    audio.play();
-    audio.onended=()=>{clearTimeout(durRelease);URL.revokeObjectURL(url);window._aud=null;release();};
-    audio.onerror=()=>{clearTimeout(durRelease);URL.revokeObjectURL(url);window._aud=null;release();};
-  }catch(err){log('TTS error: '+err.message,'bad');release();}
+    const res=await fetch('https://api.openai.com/v1/audio/speech',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},
+      body:JSON.stringify({model:'tts-1',voice:'onyx',input:text})
+    });
+    if(!res.ok) throw new Error('TTS '+res.status);
+
+    const arrayBuffer=await res.arrayBuffer();
+    const ctx=getAudioCtx();
+    const audioBuffer=await ctx.decodeAudioData(arrayBuffer);
+
+    const source=ctx.createBufferSource();
+    source.buffer=audioBuffer;
+    source.connect(ctx.destination);
+    source.onended=()=>done();
+    source.start(0);
+    window._source=source;
+
+    // Safety: release after duration + 1.5s buffer
+    setTimeout(()=>{
+      if(isSpeaking){
+        log('Duration safety release.','warn');
+        done();
+      }
+    },(audioBuffer.duration*1000)+1500);
+
+  }catch(err){
+    log('TTS error: '+err.message,'bad');
+    done();
+  }
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
