@@ -697,9 +697,14 @@ async function speak(text,resumeAfter){
   try{
     const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1',voice:'onyx',input:text})});
     const blob=await res.blob();const url=URL.createObjectURL(blob);
-    const audio=new Audio(url);window._aud=audio;audio.play();
-    audio.onended=()=>{URL.revokeObjectURL(url);window._aud=null;release();};
-    audio.onerror=()=>{URL.revokeObjectURL(url);window._aud=null;release();};
+    const audio=new Audio(url);window._aud=audio;
+    // Duration-based release for Bluetooth speakers where onended may not fire
+    const wordCount=(text.match(/[a-zA-Z]+/g)||[]).length;
+    const estMs=Math.max(2000,(wordCount/2.5)*1000)+2000;
+    const durRelease=setTimeout(()=>{if(isSpeaking){URL.revokeObjectURL(url);window._aud=null;release();}},estMs);
+    audio.play();
+    audio.onended=()=>{clearTimeout(durRelease);URL.revokeObjectURL(url);window._aud=null;release();};
+    audio.onerror=()=>{clearTimeout(durRelease);URL.revokeObjectURL(url);window._aud=null;release();};
   }catch(err){log('TTS error: '+err.message,'bad');release();}
 }
 
