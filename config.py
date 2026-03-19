@@ -24,7 +24,7 @@ ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "")
 
 # ── Timing ────────────────────────────────────────────────────────────────────
 APPROVAL_TIMEOUT_SECONDS  = 8     # How long to wait for Chris to approve
-VERACORE_TIMEOUT_SECONDS  = 12    # How long to wait for Veracore response
+VERACORE_TIMEOUT_SECONDS  = 45   # How long to wait for Veracore response
 STT_SILENCE_THRESHOLD     = 1.5   # Seconds of silence before question is complete
 
 # ── Evaluation Thresholds ─────────────────────────────────────────────────────
