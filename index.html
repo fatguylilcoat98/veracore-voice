@@ -1,1124 +1,458 @@
 <!DOCTYPE html>
 <!--
   FILE: veracore-auto/index.html
-  Veracore Voice — Autonomous Conversation Mode v1.0
+  Veracore Voice — Autonomous Mode v2.0 (GNG Orb Edition)
   The Good Neighbor Guard
   Built by Christopher Hughes · Sacramento, CA
   Created with the help of AI collaborators (Claude · GPT · Gemini · Groq)
   Truth · Safety · We Got Your Back
+  Logo design: Aubrey
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Veracore Voice · Autonomous Mode</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Veracore Voice · The Good Neighbor Guard</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #080b10;
-  --surface: #0e1219;
-  --surface2: #141922;
-  --border: #1c2435;
-  --border2: #243040;
-  --teal: #00c9a7;
-  --teal-dim: rgba(0,201,167,.12);
-  --teal-glow: rgba(0,201,167,.25);
-  --amber: #f0a500;
-  --amber-dim: rgba(240,165,0,.1);
-  --red: #ff4757;
-  --red-dim: rgba(255,71,87,.1);
-  --text: #dde3ef;
-  --text2: #8b96aa;
-  --text3: #4a5568;
-  --mono: 'DM Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
-}
+:root{--bg:#06080d;--surface:#0b0e15;--surface2:#10141e;--border:#181f2e;--teal:#00c9ff;--teal2:#00e5be;--gold:#f0a500;--gold2:#ffcc44;--red:#ff4757;--text:#dde4f0;--text2:#7a8aaa;--text3:#3a4558;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--orb:'Orbitron',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,180,255,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 50% 110%,rgba(240,165,0,.04) 0%,transparent 60%);pointer-events:none;z-index:0;transition:all 2s ease}
+body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(0,200,167,.1) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 50% 110%,rgba(240,165,0,.06) 0%,transparent 60%)}
+.wrap{width:100%;max-width:700px;position:relative;z-index:1}
+.header{text-align:center;padding:8px 0 28px}
+.gng-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:5px;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+.title{font-family:var(--orb);font-size:28px;font-weight:700;letter-spacing:4px;color:var(--text);line-height:1;margin-bottom:4px}
+.title span{color:var(--teal)}
+.tagline{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase}
+.config-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:20px}
+.config-title{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:16px}
+.field{margin-bottom:10px}
+.field label{display:block;font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:1px;margin-bottom:4px}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 11px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--teal)}
+.btn-save{width:100%;padding:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#000;border:none;border-radius:7px;font-family:var(--orb);font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-top:8px;transition:all .2s}
+.btn-save:hover{opacity:.9;transform:translateY(-1px)}
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px 16px 40px;
-  overflow-x: hidden;
-}
-
-/* Ambient background pulse */
-body::before {
-  content: '';
-  position: fixed;
-  width: 600px; height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,201,167,.04) 0%, transparent 70%);
-  top: -200px; left: 50%;
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 0;
-  transition: all 2s ease;
-}
-
-body.listening::before { background: radial-gradient(circle, rgba(0,201,167,.07) 0%, transparent 70%); }
-body.speaking::before { background: radial-gradient(circle, rgba(240,165,0,.07) 0%, transparent 70%); }
-
-.wrap {
-  width: 100%;
-  max-width: 680px;
-  position: relative;
-  z-index: 1;
-}
-
-/* ── Header ── */
-.header {
-  text-align: center;
-  padding: 12px 0 32px;
-}
-
-.gng-label {
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: var(--text3);
-  text-transform: uppercase;
-  font-family: var(--mono);
-  margin-bottom: 10px;
-}
-
-.wordmark {
-  font-size: 36px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  color: var(--text);
-  line-height: 1;
-  margin-bottom: 4px;
-}
-.wordmark em {
-  font-style: normal;
-  color: var(--teal);
-}
-
-.sub {
-  font-size: 12px;
-  color: var(--text3);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  font-family: var(--mono);
-}
-
-/* ── Config ── */
-.config-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-  margin-bottom: 20px;
-}
-
-.config-title {
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--text3);
-  text-transform: uppercase;
-  font-family: var(--mono);
-  margin-bottom: 18px;
-}
-
-.field {
-  margin-bottom: 12px;
-}
-
-.field label {
-  display: block;
-  font-size: 11px;
-  color: var(--text3);
-  font-family: var(--mono);
-  letter-spacing: 1px;
-  margin-bottom: 5px;
-}
-
-.field input {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 9px 12px;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 12px;
-  outline: none;
-  transition: border-color .2s;
-}
-.field input:focus { border-color: var(--teal); }
-
-.btn-save {
-  width: 100%;
-  padding: 12px;
-  background: var(--teal);
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  margin-top: 6px;
-  transition: all .2s;
-}
-.btn-save:hover { background: #00e5be; }
-
-/* ── Orb — the soul of the UI ── */
-.orb-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 0 28px;
-}
-
-.orb-wrap {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  margin-bottom: 20px;
-  cursor: pointer;
-}
-
-.orb-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px solid var(--border2);
-  transition: all .6s ease;
-}
-
-.orb-ring.r2 {
-  inset: -14px;
-  border-color: var(--border);
-  opacity: 0.5;
-}
-
-.orb-ring.r3 {
-  inset: -28px;
-  border-color: var(--border);
-  opacity: 0.2;
-}
-
-.orb {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, var(--surface2), var(--surface));
-  border: 1px solid var(--border2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all .6s ease;
-  overflow: hidden;
-}
-
-.orb::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, rgba(0,201,167,.0), transparent 60%);
-  transition: all .6s ease;
-}
-
-/* State: idle */
-.orb-wrap.idle .orb { border-color: var(--border2); }
-
-/* State: listening */
-.orb-wrap.listening .orb {
-  border-color: var(--teal);
-  box-shadow: 0 0 0 1px var(--teal-glow), 0 0 40px var(--teal-glow);
-  animation: orb-breathe 2.5s ease-in-out infinite;
-}
-.orb-wrap.listening .orb::before {
-  background: radial-gradient(circle at 35% 35%, rgba(0,201,167,.15), transparent 60%);
-}
-.orb-wrap.listening .orb-ring { border-color: var(--teal); opacity: 0.3; animation: ring-expand 2.5s ease-in-out infinite; }
-.orb-wrap.listening .orb-ring.r2 { animation: ring-expand 2.5s ease-in-out infinite .3s; }
-.orb-wrap.listening .orb-ring.r3 { animation: ring-expand 2.5s ease-in-out infinite .6s; }
-
-/* State: thinking */
-.orb-wrap.thinking .orb {
-  border-color: var(--amber);
-  box-shadow: 0 0 0 1px rgba(240,165,0,.2), 0 0 40px rgba(240,165,0,.15);
-  animation: orb-spin 3s linear infinite;
-}
-.orb-wrap.thinking .orb::before {
-  background: conic-gradient(from 0deg, transparent 0%, rgba(240,165,0,.15) 40%, transparent 70%);
-  animation: spin-before 3s linear infinite;
-}
-
-/* State: speaking */
-.orb-wrap.speaking .orb {
-  border-color: var(--teal);
-  box-shadow: 0 0 0 1px var(--teal-glow), 0 0 60px var(--teal-glow);
-  animation: orb-pulse 0.6s ease-in-out infinite alternate;
-}
-.orb-wrap.speaking .orb::before {
-  background: radial-gradient(circle at 35% 35%, rgba(0,201,167,.25), transparent 60%);
-  animation: speaking-glow .6s ease-in-out infinite alternate;
-}
-
-@keyframes orb-breathe {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 1px var(--teal-glow), 0 0 30px var(--teal-glow); }
-  50% { transform: scale(1.04); box-shadow: 0 0 0 1px var(--teal-glow), 0 0 55px var(--teal-glow); }
-}
-@keyframes ring-expand {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.1; transform: scale(1.03); }
-}
-@keyframes orb-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-@keyframes spin-before { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
-@keyframes orb-pulse {
-  from { transform: scale(1); }
-  to { transform: scale(1.06); }
-}
-@keyframes speaking-glow {
-  from { opacity: 0.6; }
-  to { opacity: 1; }
-}
-
-/* Orb icon */
-.orb-icon {
-  font-size: 42px;
-  line-height: 1;
-  position: relative;
-  z-index: 1;
-  transition: all .4s;
-  user-select: none;
-}
-
-/* Soundwave bars inside orb when speaking */
-.orb-bars {
-  display: none;
-  gap: 4px;
-  align-items: center;
-  height: 30px;
-  position: relative;
-  z-index: 1;
-}
-.orb-bars.visible { display: flex; }
-.orb-bar {
-  width: 4px;
-  border-radius: 2px;
-  background: var(--teal);
-  animation: bar-bounce .6s ease-in-out infinite;
-}
-.orb-bar:nth-child(1) { height: 12px; animation-delay: 0s; }
-.orb-bar:nth-child(2) { height: 22px; animation-delay: .1s; }
-.orb-bar:nth-child(3) { height: 30px; animation-delay: .2s; }
-.orb-bar:nth-child(4) { height: 22px; animation-delay: .3s; }
-.orb-bar:nth-child(5) { height: 12px; animation-delay: .4s; }
-@keyframes bar-bounce {
-  0%, 100% { transform: scaleY(.4); opacity: .6; }
-  50% { transform: scaleY(1); opacity: 1; }
-}
-
-/* State label under orb */
-.orb-state {
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--text3);
-  font-family: var(--mono);
-  transition: all .4s;
-  text-align: center;
-  min-height: 16px;
-}
-.orb-state.active { color: var(--teal); }
-.orb-state.thinking-state { color: var(--amber); }
-
-/* ── Start/Stop button ── */
-.big-btn {
-  padding: 15px 48px;
-  border-radius: 50px;
-  font-family: var(--sans);
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  border: 1px solid var(--border2);
-  background: var(--surface);
-  color: var(--text2);
-  cursor: pointer;
-  transition: all .3s;
-  margin-top: 20px;
-}
-.big-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-dim); }
-.big-btn.running {
-  border-color: var(--red);
-  color: var(--red);
-  background: var(--red-dim);
-}
-.big-btn:disabled { opacity: .3; cursor: not-allowed; }
-
-/* ── Conversation stream ── */
-.convo-section {
-  margin-top: 8px;
-}
-
-.convo-label {
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: var(--text3);
-  text-transform: uppercase;
-  font-family: var(--mono);
-  margin-bottom: 14px;
-  padding: 0 2px;
-}
-
-.convo-stream {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 420px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.convo-stream::-webkit-scrollbar { width: 4px; }
-.convo-stream::-webkit-scrollbar-track { background: transparent; }
-.convo-stream::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-.bubble {
-  padding: 14px 18px;
-  border-radius: 14px;
-  font-size: 15px;
-  line-height: 1.6;
-  max-width: 88%;
-  animation: bubble-in .3s ease-out;
-  position: relative;
-}
-
-@keyframes bubble-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Audience question */
-.bubble.question {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-bottom-left-radius: 4px;
-  align-self: flex-start;
-  color: var(--text2);
-  font-style: italic;
-}
-
-.bubble.question::before {
-  content: attr(data-speaker);
-  display: block;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--text3);
-  text-transform: uppercase;
-  font-style: normal;
-  font-family: var(--mono);
-  margin-bottom: 6px;
-}
-
-/* Veracore answer */
-.bubble.answer {
-  background: var(--teal-dim);
-  border: 1px solid rgba(0,201,167,.2);
-  border-bottom-right-radius: 4px;
-  align-self: flex-end;
-  color: var(--text);
-}
-
-.bubble.answer::before {
-  content: 'VERACORE';
-  display: block;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: var(--teal);
-  font-family: var(--mono);
-  margin-bottom: 6px;
-}
-
-.conf-tag {
-  display: inline-block;
-  font-size: 10px;
-  font-family: var(--mono);
-  color: var(--text3);
-  margin-top: 8px;
-  letter-spacing: 1px;
-}
-.conf-tag.hi { color: var(--teal); }
-.conf-tag.mid { color: var(--amber); }
-.conf-tag.lo { color: var(--red); }
-
-/* System messages */
-.bubble.system {
-  background: transparent;
-  border: none;
-  color: var(--text3);
-  font-size: 12px;
-  font-family: var(--mono);
-  letter-spacing: 1px;
-  align-self: center;
-  padding: 4px 0;
-}
-
-/* Typing indicator */
-.bubble.typing {
-  background: var(--teal-dim);
-  border: 1px solid rgba(0,201,167,.15);
-  border-bottom-right-radius: 4px;
-  align-self: flex-end;
-  padding: 16px 20px;
-  min-width: 72px;
-}
-
-.typing-dots {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-}
-.dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--teal);
-  animation: dot-pulse 1.2s ease-in-out infinite;
-}
-.dot:nth-child(2) { animation-delay: .2s; }
-.dot:nth-child(3) { animation-delay: .4s; }
-@keyframes dot-pulse {
-  0%, 80%, 100% { transform: scale(.7); opacity: .4; }
-  40% { transform: scale(1); opacity: 1; }
-}
-
-/* ── Kill strip ── */
-.kill-strip {
-  margin-top: 24px;
-  padding: 12px 18px;
-  border-radius: 8px;
-  background: var(--red-dim);
-  border: 1px solid rgba(255,71,87,.2);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.kill-label {
-  font-size: 11px;
-  color: rgba(255,71,87,.6);
-  font-family: var(--mono);
-  letter-spacing: 1px;
-}
-
-.btn-kill {
-  padding: 7px 16px;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid rgba(255,71,87,.4);
-  color: var(--red);
-  font-family: var(--sans);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: all .2s;
-}
-.btn-kill:hover { background: var(--red-dim); }
-
-/* ── Stats footer ── */
-.stats-strip {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.stat {
-  flex: 1;
-  text-align: center;
-}
-
-.stat-n {
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--teal);
-  font-family: var(--mono);
-  line-height: 1;
-  margin-bottom: 3px;
-}
-
-.stat-l {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text3);
-  text-transform: uppercase;
-  font-family: var(--mono);
-}
-
-.footer {
-  text-align: center;
-  padding-top: 24px;
-  font-size: 10px;
-  color: var(--text3);
-  font-family: var(--mono);
-  letter-spacing: 1.5px;
-  line-height: 1.8;
-}
-
-/* Threshold nudge banner */
-.nudge {
-  background: var(--amber-dim);
-  border: 1px solid rgba(240,165,0,.2);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 12px;
-  color: var(--amber);
-  font-family: var(--mono);
-  margin-bottom: 12px;
-  display: none;
-  letter-spacing: 0.5px;
-  line-height: 1.5;
-}
-.nudge.show { display: block; }
+/* ── GNG ORB ── */
+.orb-section{display:flex;flex-direction:column;align-items:center;padding:10px 0 24px;position:relative}
+.orb-halo{position:absolute;width:340px;height:340px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-54%);pointer-events:none;opacity:0;transition:opacity 1s ease;background:radial-gradient(circle,rgba(0,201,255,.08) 0%,transparent 70%)}
+.orb-section.listening .orb-halo{opacity:1;animation:halo-breathe 3s ease-in-out infinite}
+.orb-section.speaking .orb-halo{opacity:1;background:radial-gradient(circle,rgba(0,229,190,.12) 0%,transparent 70%);animation:halo-throb .7s ease-in-out infinite alternate}
+.orb-section.thinking .orb-halo{opacity:1;background:radial-gradient(circle,rgba(240,165,0,.08) 0%,transparent 70%);animation:halo-breathe 1.5s ease-in-out infinite}
+@keyframes halo-breathe{0%,100%{transform:translate(-50%,-54%) scale(1);opacity:.6}50%{transform:translate(-50%,-54%) scale(1.08);opacity:1}}
+@keyframes halo-throb{from{transform:translate(-50%,-54%) scale(1);opacity:.8}to{transform:translate(-50%,-54%) scale(1.12);opacity:1}}
+.gng-orb{position:relative;width:220px;height:220px;cursor:pointer;margin-bottom:16px}
+.orb-svg{position:absolute;inset:0;width:100%;height:100%}
+.orb-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2}
+.gng-letters{font-family:var(--orb);font-size:46px;font-weight:900;letter-spacing:2px;color:var(--teal);text-shadow:0 0 20px rgba(0,201,255,.8),0 0 40px rgba(0,201,255,.4);line-height:1;transition:all .6s ease;user-select:none}
+.gng-sub{font-family:var(--orb);font-size:7px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-top:3px;transition:all .6s ease}
+.orb-section.listening .gng-letters{text-shadow:0 0 20px rgba(0,201,255,.9),0 0 50px rgba(0,201,255,.5);animation:letters-breathe 3s ease-in-out infinite}
+.orb-section.thinking .gng-letters{color:var(--gold);text-shadow:0 0 20px rgba(240,165,0,.9),0 0 50px rgba(240,165,0,.5);animation:letters-flicker 1.5s ease-in-out infinite}
+.orb-section.speaking .gng-letters{color:var(--teal2);text-shadow:0 0 30px rgba(0,229,190,1),0 0 60px rgba(0,229,190,.6),0 0 100px rgba(0,229,190,.3);animation:letters-throb .5s ease-in-out infinite alternate}
+@keyframes letters-breathe{0%,100%{opacity:.85}50%{opacity:1}}
+@keyframes letters-flicker{0%,100%{opacity:1}33%{opacity:.7}66%{opacity:.9}}
+@keyframes letters-throb{from{transform:scale(1)}to{transform:scale(1.04)}}
+#spark-canvas{position:absolute;inset:-30px;width:calc(100% + 60px);height:calc(100% + 60px);pointer-events:none;z-index:3}
+.sound-bars{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);display:flex;gap:3px;align-items:flex-end;height:20px;opacity:0;transition:opacity .3s;z-index:4}
+.sound-bars.visible{opacity:1}
+.sbar{width:3px;border-radius:2px;background:var(--teal2);animation:sbar-wave .5s ease-in-out infinite alternate}
+.sbar:nth-child(1){height:6px;animation-delay:0s}.sbar:nth-child(2){height:12px;animation-delay:.08s}.sbar:nth-child(3){height:18px;animation-delay:.16s}.sbar:nth-child(4){height:20px;animation-delay:.24s}.sbar:nth-child(5){height:18px;animation-delay:.32s}.sbar:nth-child(6){height:12px;animation-delay:.40s}.sbar:nth-child(7){height:6px;animation-delay:.48s}
+@keyframes sbar-wave{from{transform:scaleY(.3);opacity:.5}to{transform:scaleY(1);opacity:1}}
+.orb-label{font-family:var(--mono);font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--text3);text-align:center;min-height:14px;transition:all .4s}
+.orb-label.teal{color:var(--teal)}.orb-label.gold{color:var(--gold)}
+.big-btn{margin-top:18px;padding:14px 44px;border-radius:50px;font-family:var(--orb);font-size:11px;font-weight:600;letter-spacing:3px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .3s;text-transform:uppercase}
+.big-btn:hover{border-color:var(--teal);color:var(--teal)}.big-btn.running{border-color:var(--red);color:var(--red);background:rgba(255,71,87,.05)}.big-btn:disabled{opacity:.3;cursor:not-allowed}
+.convo-section{margin-top:4px}
+.convo-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;margin-bottom:12px;padding:0 2px}
+.convo-stream{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding-right:4px}
+.convo-stream::-webkit-scrollbar{width:3px}.convo-stream::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.bubble{padding:13px 16px;border-radius:12px;font-size:14px;line-height:1.6;max-width:86%;animation:bubble-in .25s ease-out}
+@keyframes bubble-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.bubble.question{background:var(--surface);border:1px solid var(--border);border-bottom-left-radius:3px;align-self:flex-start;color:var(--text2);font-style:italic}
+.bubble.question::before{content:attr(data-speaker);display:block;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;font-style:normal;font-family:var(--mono);margin-bottom:5px}
+.bubble.answer{background:linear-gradient(135deg,rgba(0,201,255,.07),rgba(0,229,190,.05));border:1px solid rgba(0,201,255,.15);border-bottom-right-radius:3px;align-self:flex-end;color:var(--text)}
+.bubble.answer::before{content:'VERACORE';display:block;font-size:9px;letter-spacing:3px;color:var(--teal);font-family:var(--mono);margin-bottom:5px}
+.conf-pill{display:inline-block;font-size:9px;font-family:var(--mono);padding:2px 8px;border-radius:20px;margin-top:8px;letter-spacing:1px;border:1px solid}
+.conf-pill.hi{color:var(--teal2);border-color:rgba(0,229,190,.3);background:rgba(0,229,190,.05)}.conf-pill.mid{color:var(--gold);border-color:rgba(240,165,0,.3);background:rgba(240,165,0,.05)}.conf-pill.lo{color:var(--red);border-color:rgba(255,71,87,.3);background:rgba(255,71,87,.05)}
+.bubble.system{background:transparent;border:none;color:var(--text3);font-size:11px;font-family:var(--mono);letter-spacing:1px;align-self:center;padding:3px 0}
+.bubble.typing{background:linear-gradient(135deg,rgba(0,201,255,.07),rgba(0,229,190,.05));border:1px solid rgba(0,201,255,.12);border-bottom-right-radius:3px;align-self:flex-end;padding:14px 18px}
+.dots{display:flex;gap:5px;align-items:center}.dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:dot-pulse 1.2s ease-in-out infinite}.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes dot-pulse{0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1}}
+.kill-strip{margin-top:20px;padding:10px 16px;border-radius:8px;background:rgba(255,71,87,.04);border:1px solid rgba(255,71,87,.15);display:flex;align-items:center;justify-content:space-between}
+.kill-label{font-family:var(--mono);font-size:10px;color:rgba(255,71,87,.4);letter-spacing:1px}
+.btn-kill{padding:7px 14px;border-radius:5px;background:transparent;border:1px solid rgba(255,71,87,.3);color:var(--red);font-family:var(--orb);font-size:9px;font-weight:600;cursor:pointer;letter-spacing:2px;transition:all .2s}
+.btn-kill:hover{background:rgba(255,71,87,.08)}
+.stats-strip{display:flex;gap:6px;margin-top:12px}
+.stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center}
+.stat-n{font-size:20px;font-weight:500;color:var(--teal);font-family:var(--mono);line-height:1;margin-bottom:3px}.stat-l{font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;font-family:var(--mono)}
+.footer{text-align:center;padding-top:20px;font-size:9px;color:var(--text3);font-family:var(--mono);letter-spacing:2px;line-height:2}
+.nudge{background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.2);border-radius:7px;padding:9px 13px;font-size:11px;color:var(--gold);font-family:var(--mono);margin-bottom:12px;display:none;letter-spacing:.5px}
+.nudge.show{display:block}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <!-- Header -->
   <div class="header">
-    <div class="gng-label">The Good Neighbor Guard</div>
-    <div class="wordmark">Vera<em>core</em> Voice</div>
-    <div class="sub">Autonomous Mode</div>
+    <div class="gng-eyebrow">The Good Neighbor Guard</div>
+    <div class="title">VERA<span>CORE</span> VOICE</div>
+    <div class="tagline">Truth · Safety · We Got Your Back</div>
   </div>
 
-  <!-- Config -->
   <div class="config-card" id="config-card">
-    <div class="config-title">Setup</div>
+    <div class="config-title">Initialize</div>
     <div class="field"><label>Veracore URL</label><input id="cfg-url" type="text" value="https://veracore.onrender.com"></div>
-    <div class="field"><label>OpenAI Key (voice)</label><input id="cfg-openai" type="password" placeholder="sk-..."></div>
-    <div class="field"><label>Groq Key (transcription)</label><input id="cfg-groq" type="password" placeholder="gsk_..."></div>
-    <button class="btn-save" onclick="saveConfig()">Let's Go</button>
+    <div class="field"><label>OpenAI Key</label><input id="cfg-openai" type="password" placeholder="sk-..."></div>
+    <div class="field"><label>Groq Key</label><input id="cfg-groq" type="password" placeholder="gsk_..."></div>
+    <button class="btn-save" onclick="saveConfig()">Initialize Veracore</button>
   </div>
 
-  <!-- Nudge -->
   <div class="nudge" id="nudge"></div>
 
-  <!-- Orb -->
-  <div class="orb-section">
-    <div class="orb-wrap idle" id="orb-wrap">
-      <div class="orb-ring r3"></div>
-      <div class="orb-ring r2"></div>
-      <div class="orb-ring"></div>
-      <div class="orb">
-        <div class="orb-icon" id="orb-icon">🎙</div>
-        <div class="orb-bars" id="orb-bars">
-          <div class="orb-bar"></div>
-          <div class="orb-bar"></div>
-          <div class="orb-bar"></div>
-          <div class="orb-bar"></div>
-          <div class="orb-bar"></div>
-        </div>
+  <div class="orb-section idle" id="orb-section">
+    <div class="orb-halo"></div>
+    <div class="gng-orb" id="gng-orb">
+      <svg class="orb-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-teal"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glow-gold"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <linearGradient id="arc-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(0,201,255,0)"/><stop offset="50%" stop-color="rgba(0,201,255,.8)"/><stop offset="100%" stop-color="rgba(0,201,255,0)"/></linearGradient>
+        </defs>
+        <circle cx="110" cy="110" r="100" fill="none" stroke="rgba(0,201,255,.12)" stroke-width="1"/>
+        <circle cx="110" cy="110" r="100" fill="none" stroke="rgba(0,201,255,.4)" stroke-width="1.5" stroke-dasharray="8 6" stroke-linecap="round" filter="url(#glow-teal)" id="ring-outer"/>
+        <circle cx="110" cy="110" r="84" fill="none" stroke="rgba(0,201,255,.2)" stroke-width="1" stroke-dasharray="4 8" id="ring-inner"/>
+        <g filter="url(#glow-teal)">
+          <rect x="106" y="6" width="8" height="8" rx="1" fill="rgba(0,201,255,.8)"/>
+          <rect x="204" y="106" width="8" height="8" rx="1" fill="rgba(0,201,255,.8)"/>
+          <rect x="106" y="204" width="8" height="8" rx="1" fill="rgba(0,201,255,.8)"/>
+          <rect x="2" y="106" width="8" height="8" rx="1" fill="rgba(0,201,255,.8)"/>
+        </g>
+        <g filter="url(#glow-gold)">
+          <circle cx="180" cy="40" r="5" fill="rgba(240,165,0,.9)"/>
+          <circle cx="40" cy="180" r="5" fill="rgba(0,201,255,.7)"/>
+          <circle cx="180" cy="180" r="4" fill="rgba(240,165,0,.7)"/>
+          <circle cx="40" cy="40" r="5" fill="rgba(240,165,0,.9)"/>
+        </g>
+        <g stroke="rgba(0,201,255,.15)" stroke-width="1" fill="none">
+          <path d="M110,10 Q150,60 180,110 Q150,160 110,210"/>
+          <path d="M110,10 Q70,60 40,110 Q70,160 110,210"/>
+          <path d="M10,110 Q60,80 110,60 Q160,80 210,110"/>
+          <path d="M10,110 Q60,140 110,160 Q160,140 210,110"/>
+        </g>
+        <circle cx="110" cy="110" r="100" fill="none" stroke="url(#arc-grad)" stroke-width="2" stroke-dasharray="60 580" stroke-linecap="round" id="spin-arc"/>
+      </svg>
+      <div class="orb-center">
+        <div class="gng-letters" id="gng-letters">GNG</div>
+        <div class="gng-sub">GOOD NEIGHBOR GUARD</div>
+      </div>
+      <canvas id="spark-canvas"></canvas>
+      <div class="sound-bars" id="sound-bars">
+        <div class="sbar"></div><div class="sbar"></div><div class="sbar"></div>
+        <div class="sbar"></div><div class="sbar"></div><div class="sbar"></div>
+        <div class="sbar"></div>
       </div>
     </div>
-    <div class="orb-state" id="orb-state">Tap to begin</div>
+    <div class="orb-label" id="orb-label">Tap to begin</div>
     <button class="big-btn" id="big-btn" onclick="toggleSession()" disabled>Start Listening</button>
   </div>
 
-  <!-- Conversation -->
   <div class="convo-section" id="convo-section" style="display:none">
-    <div class="convo-label">Conversation</div>
+    <div class="convo-label">Live Conversation</div>
     <div class="convo-stream" id="convo-stream"></div>
   </div>
 
-  <!-- Kill -->
   <div class="kill-strip">
     <div class="kill-label">Emergency stop</div>
-    <button class="btn-kill" onclick="killAll()">■ Chris Says Stop</button>
+    <button class="btn-kill" onclick="killAll()">■ CHRIS SAYS STOP</button>
   </div>
 
-  <!-- Stats -->
   <div class="stats-strip">
     <div class="stat"><div class="stat-n" id="s-answered">0</div><div class="stat-l">Answered</div></div>
-    <div class="stat"><div class="stat-n" id="s-heard" style="color:var(--text3)">0</div><div class="stat-l">Heard</div></div>
-    <div class="stat"><div class="stat-n" id="s-skipped" style="color:var(--amber)">0</div><div class="stat-l">Passed</div></div>
+    <div class="stat"><div class="stat-n" id="s-heard" style="color:var(--text2)">0</div><div class="stat-l">Heard</div></div>
+    <div class="stat"><div class="stat-n" id="s-skipped" style="color:var(--gold)">0</div><div class="stat-l">Passed</div></div>
     <div class="stat"><div class="stat-n" id="s-filtered" style="color:var(--text3)">0</div><div class="stat-l">Filtered</div></div>
   </div>
 
   <div class="footer">
-    Veracore Voice · Autonomous Mode v1.0<br>
-    The Good Neighbor Guard · Truth · Safety · We Got Your Back
+    Veracore Voice · Autonomous Mode v2.0 · GNG Orb Edition<br>
+    The Good Neighbor Guard · Sacramento, CA<br>
+    Truth · Safety · We Got Your Back
   </div>
-
 </div>
 
 <script>
-// ─────────────────────────────────────────────────────────────
-//  CONFIG
-// ─────────────────────────────────────────────────────────────
-let cfg = { url: '', openai: '', groq: '' };
+// ── SPARKS ──────────────────────────────────────────────────
+const canvas=document.getElementById('spark-canvas');
+const ctx2d=canvas.getContext('2d');
+let sparks=[],sparkInterval=null,arcAngle=0;
 
-function saveConfig() {
-  cfg.url    = document.getElementById('cfg-url').value.trim();
-  cfg.openai = document.getElementById('cfg-openai').value.trim();
-  cfg.groq   = document.getElementById('cfg-groq').value.trim();
-  if (!cfg.openai) { nudge('OpenAI key is required for voice.'); return; }
-  if (!cfg.groq)   { nudge('Groq key is required for transcription.'); return; }
-  localStorage.setItem('vca_url',    cfg.url);
-  localStorage.setItem('vca_openai', cfg.openai);
-  localStorage.setItem('vca_groq',   cfg.groq);
-  document.getElementById('config-card').style.display = 'none';
-  document.getElementById('big-btn').disabled = false;
+function resizeCanvas(){const o=document.getElementById('gng-orb');canvas.width=o.offsetWidth+60;canvas.height=o.offsetHeight+60;}
+
+function createSpark(intensity){
+  intensity=intensity||1;
+  const nodes=[{x:140,y:10},{x:170,y:30},{x:10,y:140},{x:170,y:160},{x:30,y:30},{x:30,y:160},{x:140,y:170}];
+  const node=nodes[Math.floor(Math.random()*nodes.length)];
+  const count=Math.floor(2+intensity*4);
+  for(let i=0;i<count;i++){
+    sparks.push({x:node.x+30,y:node.y+30,vx:(Math.random()-.5)*(2+intensity*3),vy:(Math.random()-.5)*(2+intensity*3),life:1,decay:.02+Math.random()*.04,size:1+Math.random()*(1.5*intensity),color:Math.random()>.4?'#f0a500':'#00c9ff'});
+  }
+}
+
+function animateSparks(){
+  ctx2d.clearRect(0,0,canvas.width,canvas.height);
+  sparks=sparks.filter(s=>s.life>0);
+  for(const s of sparks){
+    ctx2d.save();ctx2d.globalAlpha=s.life*.9;ctx2d.fillStyle=s.color;ctx2d.shadowBlur=6;ctx2d.shadowColor=s.color;
+    ctx2d.beginPath();ctx2d.arc(s.x,s.y,s.size,0,Math.PI*2);ctx2d.fill();ctx2d.restore();
+    s.x+=s.vx;s.y+=s.vy;s.vy+=.05;s.life-=s.decay;
+  }
+  requestAnimationFrame(animateSparks);
+}
+
+function animateArc(){
+  arcAngle+=1.2;
+  const arc=document.getElementById('spin-arc');
+  if(arc)arc.setAttribute('transform',`rotate(${arcAngle},110,110)`);
+  requestAnimationFrame(animateArc);
+}
+
+function startSparks(intensity,interval){stopSparks();createSpark(intensity);sparkInterval=setInterval(()=>createSpark(intensity),interval||800);}
+function stopSparks(){if(sparkInterval){clearInterval(sparkInterval);sparkInterval=null;}}
+
+// ── ORB STATE ────────────────────────────────────────────────
+function setOrbState(state){
+  const section=document.getElementById('orb-section');
+  const label=document.getElementById('orb-label');
+  const bars=document.getElementById('sound-bars');
+  const ring=document.getElementById('ring-outer');
+  const inner=document.getElementById('ring-inner');
+  section.className='orb-section '+state;
+  document.body.className=state;
+  stopSparks();
+  const S={
+    idle:{label:'Tap to begin',lc:'',sparks:false,bars:false,rc:'rgba(0,201,255,.4)',ic:'rgba(0,201,255,.2)'},
+    listening:{label:'Listening',lc:'teal',sparks:{i:.5,t:2000},bars:false,rc:'rgba(0,201,255,.7)',ic:'rgba(0,201,255,.3)'},
+    thinking:{label:'Thinking...',lc:'gold',sparks:{i:1.8,t:350},bars:false,rc:'rgba(240,165,0,.8)',ic:'rgba(240,165,0,.4)'},
+    speaking:{label:'Speaking',lc:'teal',sparks:{i:.9,t:550},bars:true,rc:'rgba(0,229,190,.9)',ic:'rgba(0,229,190,.4)'}
+  };
+  const c=S[state]||S.idle;
+  label.textContent=c.label;label.className='orb-label '+c.lc;
+  bars.className='sound-bars'+(c.bars?' visible':'');
+  if(ring)ring.setAttribute('stroke',c.rc);
+  if(inner)inner.setAttribute('stroke',c.ic);
+  if(c.sparks)startSparks(c.sparks.i,c.sparks.t);
+}
+
+// ── CONFIG ───────────────────────────────────────────────────
+let cfg={url:'',openai:'',groq:''};
+
+function saveConfig(){
+  cfg.url=document.getElementById('cfg-url').value.trim();
+  cfg.openai=document.getElementById('cfg-openai').value.trim();
+  cfg.groq=document.getElementById('cfg-groq').value.trim();
+  if(!cfg.openai){nudge('OpenAI key required.');return;}
+  if(!cfg.groq){nudge('Groq key required.');return;}
+  localStorage.setItem('vca_url',cfg.url);
+  localStorage.setItem('vca_openai',cfg.openai);
+  localStorage.setItem('vca_groq',cfg.groq);
+  document.getElementById('config-card').style.display='none';
+  document.getElementById('big-btn').disabled=false;
   setOrbState('idle');
   sysMsg('Ready. Tap Start Listening whenever you are.');
 }
 
-window.addEventListener('load', () => {
-  const u = localStorage.getItem('vca_url');
-  const o = localStorage.getItem('vca_openai');
-  const g = localStorage.getItem('vca_groq');
-  if (u) document.getElementById('cfg-url').value = u;
-  if (o) document.getElementById('cfg-openai').value = o;
-  if (g) document.getElementById('cfg-groq').value = g;
-  if (o && g) saveConfig();
+window.addEventListener('load',()=>{
+  resizeCanvas();animateSparks();animateArc();
+  const u=localStorage.getItem('vca_url'),o=localStorage.getItem('vca_openai'),g=localStorage.getItem('vca_groq');
+  if(u)document.getElementById('cfg-url').value=u;
+  if(o)document.getElementById('cfg-openai').value=o;
+  if(g)document.getElementById('cfg-groq').value=g;
+  if(o&&g)saveConfig();
 });
+window.addEventListener('resize',resizeCanvas);
 
-// ─────────────────────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────────────────────
-let running = false, isSpeaking = false;
-let mediaRecorder = null, micStream = null, audioChunks = [];
-let cntAnswered = 0, cntHeard = 0, cntSkipped = 0, cntFiltered = 0;
-let audioCtx = null, currentSource = null;
-let typingBubble = null;
-let consecutiveNoisy = 0; // silence / noise run tracker
+// ── STATE ────────────────────────────────────────────────────
+let running=false,isSpeaking=false;
+let mediaRecorder=null,micStream=null,audioChunks=[];
+let cntAnswered=0,cntHeard=0,cntSkipped=0,cntFiltered=0;
+let audioCtx=null,currentSource=null,typingBubble=null;
+const CONF_DELIVER=0.45,CONF_CERTAIN=0.70;
 
-// Confidence thresholds
-const CONF_DELIVER = 0.45; // below this = hand to Chris
-const CONF_CERTAIN = 0.70; // above this = speak confidently
+// ── FILTER ───────────────────────────────────────────────────
+const Q_STARTERS=['what','how','why','when','where','who','which','can','does','is','are','will','would','could','should','do','did','has','have','tell','explain'];
+const NOISE_EXACT=['thank you','thanks','okay','ok','alright','yeah','yep','sure','cool','great','awesome','wow','oh','uh','um','hmm','right','exactly','sounds good','got it','hello','hi','hey','bye','good job','nice','perfect','interesting','really','absolutely','of course','makes sense','i see','no','yes','nope','yup','love it','amazing','incredible','that is amazing'];
 
-// ─────────────────────────────────────────────────────────────
-//  FILTER — is this worth treating as a question?
-// ─────────────────────────────────────────────────────────────
-const Q_STARTERS = ['what','how','why','when','where','who','which','can','does','is','are','will','would','could','should','do','did','has','have','tell','explain'];
-const NOISE_EXACT = ['thank you','thanks','okay','ok','alright','yeah','yep','sure','cool','great','awesome','wow','oh','uh','um','hmm','right','exactly','sounds good','got it','hello','hi','hey','bye','good job','nice','perfect','interesting','really','sure thing','absolutely','of course','makes sense','i see','no','yes','nope','yup'];
-
-function isQuestion(text) {
-  const t = text.toLowerCase().trim().replace(/['"]/g, '');
-  const words = t.split(/\s+/).filter(w => w.length > 1);
-
-  // Too short
-  if (words.length < 4) return false;
-
-  // Pure noise
-  if (NOISE_EXACT.some(n => t === n || t === n + '.' || t === n + '!')) return false;
-
-  // Mostly non-alpha (garbled)
-  const alphaRatio = (t.match(/[a-z]/g) || []).length / t.length;
-  if (alphaRatio < 0.65) return false;
-
-  // Repetitive (transcript artifact)
-  const uniq = new Set(words);
-  if (uniq.size / words.length < 0.45) return false;
-
-  // Starts with question word OR ends with ?
-  const startsQ = Q_STARTERS.some(w => words[0] === w);
-  const endsQ   = t.endsWith('?');
-
-  return startsQ || endsQ;
+function isQuestion(text){
+  const t=text.toLowerCase().trim().replace(/['"]/g,'');
+  const words=t.split(/\s+/).filter(w=>w.length>1);
+  if(words.length<4)return false;
+  if(NOISE_EXACT.some(n=>t===n||t===n+'.'||t===n+'!'))return false;
+  const alphaRatio=(t.match(/[a-z]/g)||[]).length/t.length;
+  if(alphaRatio<0.65)return false;
+  const uniq=new Set(words);
+  if(uniq.size/words.length<0.45)return false;
+  return Q_STARTERS.some(w=>words[0]===w)||t.endsWith('?');
 }
 
-// ─────────────────────────────────────────────────────────────
-//  HEART — warm, human response framing
-// ─────────────────────────────────────────────────────────────
-// These wrap the verified answer with warmth and context.
-// They don't change the truth — they change the tone.
-
-const OPENERS_CERTAIN = [
-  "Great question.",
-  "I love that you asked that.",
-  "That's exactly what I'm here for.",
-  "Really glad you brought that up.",
-];
-
-const OPENERS_UNCERTAIN = [
-  "That's a genuinely hard one — I'll be honest with you.",
-  "I want to give you a real answer, not just a confident-sounding one.",
-  "I'm going to be transparent here —",
-];
-
-const BRIDGES = [
-  "And that's actually the whole reason Chris built me —",
-  "This goes right to the heart of what The Good Neighbor Guard is about —",
-  "It matters because the people we're trying to protect deserve accuracy, not just speed —",
-  "This is why multi-model verification exists —",
-];
-
-const CLOSERS = [
-  "Does that land for you?",
-  "Does that answer what you were wondering?",
-  "Hope that helps.",
-  "Happy to go deeper on any part of that.",
-];
-
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function wrapWithHeart(answer, confidence, questionText) {
-  const isShort = answer.split(/\s+/).length < 20;
-  const sentences = answer.match(/[^.!?]+[.!?]*/g) || [answer];
-  const core = sentences.slice(0, 3).join(' ').trim();
-
-  // Decide whether to bridge to mission (not every answer — would get repetitive)
-  const useBridge = Math.random() < 0.3 && confidence >= CONF_CERTAIN;
-
-  let out = '';
-
-  if (confidence >= CONF_CERTAIN) {
-    out += pick(OPENERS_CERTAIN) + ' ';
-    if (useBridge) out += pick(BRIDGES) + ' ';
-    out += core;
-  } else {
-    out += pick(OPENERS_UNCERTAIN) + ' ';
-    out += core;
-    out += ' I want to be upfront that I'm not fully certain here, so Chris may want to add context.';
+// ── HEART ────────────────────────────────────────────────────
+function wrapWithHeart(answer,confidence){
+  const sentences=answer.match(/[^.!?]+[.!?]*/g)||[answer];
+  const core=sentences.slice(0,3).join(' ').trim();
+  if(confidence<CONF_CERTAIN){
+    return"I want to be honest with you — I'm not fully certain here, but "+core+" Chris may want to add to that.";
   }
-
-  // Closer — not always (feels more natural)
-  if (Math.random() < 0.6) out += ' ' + pick(CLOSERS);
-
-  return out.trim();
+  return core;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  MAIN FLOW: question → verify → speak
-// ─────────────────────────────────────────────────────────────
-async function handleQuestion(text) {
-  cntHeard++;
-  document.getElementById('s-heard').textContent = cntHeard;
-
-  // Show question bubble
-  addBubble('question', text, 'Audience');
-
-  // Show thinking
-  showTyping();
-  setOrbState('thinking');
-
-  let answer, confidence;
-
-  try {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 40000);
-
-    const res = await fetch(cfg.url + '/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: text }),
-      signal: controller.signal
-    });
+// ── MAIN FLOW ────────────────────────────────────────────────
+async function handleQuestion(text){
+  cntHeard++;document.getElementById('s-heard').textContent=cntHeard;
+  addBubble('question',text,'Audience');
+  showTyping();setOrbState('thinking');
+  let answer,confidence;
+  try{
+    const controller=new AbortController();
+    const tid=setTimeout(()=>controller.abort(),40000);
+    const res=await fetch(cfg.url+'/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text}),signal:controller.signal});
     clearTimeout(tid);
-
-    if (!res.ok) throw new Error('Veracore ' + res.status);
-    const data = await res.json();
-
-    answer = (data.answer || '').trim();
-    confidence = parseFloat(data.confidence) || 0.6;
-  } catch (err) {
-    removeTyping();
-    setOrbState('listening');
-    addBubble('answer', "I ran into a connection issue on that one. Chris, do you want to field it?", null, 0);
-    cntSkipped++;
-    document.getElementById('s-skipped').textContent = cntSkipped;
-    await speak("I ran into a connection issue on that one. Chris, want to field it?");
-    return;
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    answer=(data.answer||'').trim();
+    confidence=parseFloat(data.confidence)||0.6;
+  }catch(err){
+    removeTyping();setOrbState('listening');
+    const msg="I ran into a connection issue on that one. Chris, do you want to field it?";
+    addBubble('answer',msg,null,0);cntSkipped++;document.getElementById('s-skipped').textContent=cntSkipped;
+    await speak(msg);return;
   }
-
   removeTyping();
-
-  if (!answer) {
+  if(!answer||confidence<CONF_DELIVER){
     setOrbState('listening');
-    addBubble('answer', "I don't have a strong enough answer for that one. Chris, over to you.", null, 0);
-    cntSkipped++;
-    document.getElementById('s-skipped').textContent = cntSkipped;
-    await speak("I don't have a strong enough answer for that one. Chris, over to you.");
-    return;
+    const msg=confidence<CONF_DELIVER?"That question deserves more certainty than I have right now. Chris, I'd rather hand this one to you than guess.":"I don't have a strong enough answer for that one. Chris, over to you.";
+    addBubble('answer',msg,null,confidence||0);cntSkipped++;document.getElementById('s-skipped').textContent=cntSkipped;
+    await speak(msg);return;
   }
-
-  if (confidence < CONF_DELIVER) {
-    setOrbState('listening');
-    const humble = "That question deserves a better answer than I can confidently give right now. Chris, I'd rather hand this one to you than guess.";
-    addBubble('answer', humble, null, confidence);
-    cntSkipped++;
-    document.getElementById('s-skipped').textContent = cntSkipped;
-    await speak(humble);
-    return;
-  }
-
-  // Wrap with heart
-  const warmed = wrapWithHeart(answer, confidence, text);
-
-  addBubble('answer', warmed, null, confidence);
-  cntAnswered++;
-  document.getElementById('s-answered').textContent = cntAnswered;
-
+  const warmed=wrapWithHeart(answer,confidence);
+  addBubble('answer',warmed,null,confidence);
+  cntAnswered++;document.getElementById('s-answered').textContent=cntAnswered;
   await speak(warmed);
 }
 
-// ─────────────────────────────────────────────────────────────
-//  SESSION
-// ─────────────────────────────────────────────────────────────
-async function toggleSession() {
-  if (running) stopSession();
-  else await startSession();
-}
+// ── SESSION ──────────────────────────────────────────────────
+async function toggleSession(){if(running)stopSession();else await startSession();}
 
-async function startSession() {
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    running = true;
-    document.getElementById('big-btn').textContent = 'Stop Listening';
+async function startSession(){
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    running=true;
+    document.getElementById('big-btn').textContent='Stop Listening';
     document.getElementById('big-btn').classList.add('running');
-    document.getElementById('convo-section').style.display = 'block';
-    setOrbState('listening');
-    sysMsg('Session started. Listening for questions.');
+    document.getElementById('convo-section').style.display='block';
+    setOrbState('listening');sysMsg('Session live. Listening for questions.');
     recordChunk();
-  } catch (err) {
-    nudge('Microphone access denied. Please allow mic access and try again.');
-  }
+  }catch(err){nudge('Mic access denied. Please allow microphone access.');}
 }
 
-function stopSession() {
-  running = false;
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  if (micStream) micStream.getTracks().forEach(t => t.stop());
-  micStream = null; mediaRecorder = null;
-  document.getElementById('big-btn').textContent = 'Start Listening';
+function stopSession(){
+  running=false;
+  if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();
+  if(micStream)micStream.getTracks().forEach(t=>t.stop());
+  micStream=null;mediaRecorder=null;
+  document.getElementById('big-btn').textContent='Start Listening';
   document.getElementById('big-btn').classList.remove('running');
-  setOrbState('idle');
-  sysMsg('Session ended.');
+  setOrbState('idle');sysMsg('Session ended.');
 }
 
-function killAll() {
-  if (currentSource) { try { currentSource.stop(); } catch(e) {} currentSource = null; }
-  isSpeaking = false;
-  removeTyping();
-  stopSession();
-  sysMsg('Stopped by Chris.');
-  document.body.className = '';
+function killAll(){
+  if(currentSource){try{currentSource.stop();}catch(e){} currentSource=null;}
+  isSpeaking=false;removeTyping();stopSparks();stopSession();sysMsg('Stopped by Chris.');
 }
 
-// ─────────────────────────────────────────────────────────────
-//  RECORDING LOOP
-// ─────────────────────────────────────────────────────────────
-function recordChunk() {
-  if (!running || isSpeaking) return;
-  audioChunks = [];
-  mediaRecorder = new MediaRecorder(micStream);
-  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-  mediaRecorder.onstop = processChunk;
+// ── RECORDING LOOP ───────────────────────────────────────────
+function recordChunk(){
+  if(!running||isSpeaking)return;
+  audioChunks=[];
+  mediaRecorder=new MediaRecorder(micStream);
+  mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
+  mediaRecorder.onstop=processChunk;
   mediaRecorder.start();
-  setTimeout(() => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
-  }, 5000);
+  setTimeout(()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();},5000);
 }
 
-async function processChunk() {
-  if (!running || isSpeaking || !audioChunks.length) {
-    if (running && !isSpeaking) setTimeout(recordChunk, 200);
-    return;
-  }
-
-  const blob = new Blob(audioChunks, { type: 'audio/webm' });
-  audioChunks = [];
-
-  try {
-    const fd = new FormData();
-    fd.append('file', blob, 'audio.webm');
-    fd.append('model', 'whisper-large-v3');
-    fd.append('language', 'en');
-
-    const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + cfg.groq },
-      body: fd
-    });
-
-    const data = await res.json();
-    const text = (data.text || '').trim();
-
-    if (!text || text.length < 3) {
-      consecutiveNoisy++;
-      if (running && !isSpeaking) setTimeout(recordChunk, 200);
-      return;
-    }
-
-    // Alpha ratio guard
-    const alphaR = (text.match(/[a-zA-Z]/g) || []).length / text.length;
-    if (alphaR < 0.6) {
-      cntFiltered++;
-      document.getElementById('s-filtered').textContent = cntFiltered;
-      if (running && !isSpeaking) setTimeout(recordChunk, 200);
-      return;
-    }
-
-    consecutiveNoisy = 0;
-
-    if (isQuestion(text)) {
-      await handleQuestion(text);
-    } else {
-      cntFiltered++;
-      document.getElementById('s-filtered').textContent = cntFiltered;
-    }
-
-    if (running && !isSpeaking) setTimeout(recordChunk, 300);
-
-  } catch (err) {
-    if (running && !isSpeaking) setTimeout(recordChunk, 800);
-  }
+async function processChunk(){
+  if(!running||isSpeaking||!audioChunks.length){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
+  const blob=new Blob(audioChunks,{type:'audio/webm'});audioChunks=[];
+  try{
+    const fd=new FormData();
+    fd.append('file',blob,'audio.webm');fd.append('model','whisper-large-v3');fd.append('language','en');
+    const res=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.groq},body:fd});
+    const data=await res.json();
+    const text=(data.text||'').trim();
+    if(!text||text.length<3){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
+    const alphaR=(text.match(/[a-zA-Z]/g)||[]).length/text.length;
+    if(alphaR<0.6){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
+    if(isQuestion(text)){await handleQuestion(text);}
+    else{cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;}
+    if(running&&!isSpeaking)setTimeout(recordChunk,300);
+  }catch(err){if(running&&!isSpeaking)setTimeout(recordChunk,800);}
 }
 
-// ─────────────────────────────────────────────────────────────
-//  TTS — OpenAI + Web Audio
-// ─────────────────────────────────────────────────────────────
-function getCtx() {
-  if (!audioCtx || audioCtx.state === 'closed') audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
+// ── TTS ──────────────────────────────────────────────────────
+function getCtx(){if(!audioCtx||audioCtx.state==='closed')audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
 
-async function speak(text) {
-  if (!text || !cfg.openai) return;
-  isSpeaking = true;
-  setOrbState('speaking');
-
-  return new Promise(async (resolve) => {
-    function done() {
-      isSpeaking = false;
-      if (running) setOrbState('listening');
-      else setOrbState('idle');
-      resolve();
-    }
-
-    try {
-      const res = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + cfg.openai, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'tts-1', voice: 'onyx', input: text })
-      });
-      if (!res.ok) throw new Error('TTS ' + res.status);
-
-      const buf = await res.arrayBuffer();
-      const ctx = getCtx();
-      const audioBuf = await ctx.decodeAudioData(buf);
-
-      const src = ctx.createBufferSource();
-      src.buffer = audioBuf;
-      src.connect(ctx.destination);
-      currentSource = src;
-
-      src.onended = () => done();
-      src.start(0);
-
-      // Safety release
-      setTimeout(() => { if (isSpeaking) { console.warn('Safety release'); done(); } }, audioBuf.duration * 1000 + 2000);
-
-    } catch (err) {
-      console.warn('TTS error:', err);
-      done();
-    }
+async function speak(text){
+  if(!text||!cfg.openai)return;
+  isSpeaking=true;setOrbState('speaking');
+  return new Promise(async(resolve)=>{
+    function done(){isSpeaking=false;if(running)setOrbState('listening');else setOrbState('idle');resolve();}
+    try{
+      const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1',voice:'onyx',input:text})});
+      if(!res.ok)throw new Error('TTS '+res.status);
+      const buf=await res.arrayBuffer();
+      const actx=getCtx();
+      const audioBuf=await actx.decodeAudioData(buf);
+      const src=actx.createBufferSource();
+      src.buffer=audioBuf;src.connect(actx.destination);currentSource=src;
+      src.onended=()=>done();src.start(0);
+      setTimeout(()=>{if(isSpeaking)done();},audioBuf.duration*1000+2000);
+    }catch(err){done();}
   });
 }
 
-// ─────────────────────────────────────────────────────────────
-//  ORB STATE
-// ─────────────────────────────────────────────────────────────
-function setOrbState(state) {
-  const wrap = document.getElementById('orb-wrap');
-  const icon = document.getElementById('orb-icon');
-  const bars = document.getElementById('orb-bars');
-  const label = document.getElementById('orb-state');
-
-  wrap.className = 'orb-wrap ' + state;
-  document.body.className = state;
-
-  const configs = {
-    idle:      { icon: '🎙', label: 'Tap to begin', labelClass: '', showBars: false },
-    listening: { icon: '👂', label: 'Listening', labelClass: 'active', showBars: false },
-    thinking:  { icon: '',   label: 'Thinking...', labelClass: 'thinking-state', showBars: false },
-    speaking:  { icon: '',   label: 'Speaking', labelClass: 'active', showBars: true },
-  };
-
-  const c = configs[state] || configs.idle;
-  icon.textContent = c.icon;
-  icon.style.display = c.showBars ? 'none' : 'block';
-  bars.className = 'orb-bars' + (c.showBars ? ' visible' : '');
-  label.textContent = c.label;
-  label.className = 'orb-state ' + c.labelClass;
-}
-
-// ─────────────────────────────────────────────────────────────
-//  UI HELPERS
-// ─────────────────────────────────────────────────────────────
-function addBubble(type, text, speaker, confidence) {
-  const stream = document.getElementById('convo-stream');
-  document.getElementById('convo-section').style.display = 'block';
-
-  const div = document.createElement('div');
-  div.className = 'bubble ' + type;
-
-  if (type === 'question') {
-    div.setAttribute('data-speaker', speaker || 'Audience');
-    div.textContent = text;
-  } else if (type === 'answer') {
-    div.textContent = text;
-    if (confidence !== null && confidence !== undefined) {
-      const tag = document.createElement('div');
-      tag.className = 'conf-tag';
-      const pct = Math.round(confidence * 100);
-      tag.textContent = '✓ ' + pct + '% confidence';
-      if (confidence >= CONF_CERTAIN) tag.className = 'conf-tag hi';
-      else if (confidence >= CONF_DELIVER) tag.className = 'conf-tag mid';
-      else tag.className = 'conf-tag lo';
-      div.appendChild(tag);
+// ── UI ───────────────────────────────────────────────────────
+function addBubble(type,text,speaker,confidence){
+  const stream=document.getElementById('convo-stream');
+  document.getElementById('convo-section').style.display='block';
+  const div=document.createElement('div');
+  div.className='bubble '+type;
+  if(type==='question'){div.setAttribute('data-speaker',speaker||'Audience');div.textContent=text;}
+  else if(type==='answer'){
+    div.textContent=text;
+    if(confidence!==null&&confidence!==undefined){
+      const pill=document.createElement('div');
+      const pct=Math.round(confidence*100);
+      pill.className='conf-pill '+(confidence>=CONF_CERTAIN?'hi':confidence>=CONF_DELIVER?'mid':'lo');
+      pill.textContent='✓ '+pct+'% verified';
+      div.appendChild(pill);
     }
-  } else if (type === 'system') {
-    div.textContent = '— ' + text + ' —';
-  }
-
-  stream.appendChild(div);
-  stream.scrollTop = stream.scrollHeight;
-  return div;
+  }else if(type==='system'){div.textContent='— '+text+' —';}
+  stream.appendChild(div);stream.scrollTop=stream.scrollHeight;
 }
 
-function sysMsg(text) {
-  addBubble('system', text);
+function sysMsg(t){addBubble('system',t);}
+
+function showTyping(){
+  const stream=document.getElementById('convo-stream');
+  const div=document.createElement('div');
+  div.className='bubble typing';div.id='typing-bubble';
+  div.innerHTML='<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  stream.appendChild(div);stream.scrollTop=stream.scrollHeight;typingBubble=div;
 }
 
-function showTyping() {
-  const stream = document.getElementById('convo-stream');
-  const div = document.createElement('div');
-  div.className = 'bubble typing';
-  div.id = 'typing-bubble';
-  div.innerHTML = '<div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
-  stream.appendChild(div);
-  stream.scrollTop = stream.scrollHeight;
-  typingBubble = div;
-}
+function removeTyping(){if(typingBubble){typingBubble.remove();typingBubble=null;}}
 
-function removeTyping() {
-  if (typingBubble) { typingBubble.remove(); typingBubble = null; }
-}
-
-function nudge(msg) {
-  const el = document.getElementById('nudge');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 5000);
-}
+function nudge(msg){const el=document.getElementById('nudge');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),5000);}
 </script>
 </body>
 </html>
