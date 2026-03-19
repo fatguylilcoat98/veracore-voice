@@ -521,11 +521,17 @@ async function handleNo(){
   const lastDelivered=queue.filter(q=>q.status==='DELIVERED').pop();
   if(!lastDelivered){speak("I don't have that question available to expand on. Chris, do you want to take it?",false);return;}
   try{
-    const res=await fetch(cfg.url+'/ask',{
+   const controller2=new AbortController();
+const timeoutId2=setTimeout(()=>controller2.abort(),45000);
+const controller2=new AbortController();
+const timeoutId2=setTimeout(()=>controller2.abort(),45000);
+const res=await fetch(cfg.url+'/ask',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({question:'Please provide a more detailed and thorough explanation for this question: '+lastDelivered.question})
+      body:JSON.stringify({question:'Please provide a more detailed and thorough explanation for this question: '+lastDelivered.question}),
+      signal:controller2.signal
     });
+clearTimeout(timeoutId2);
     if(!res.ok) throw new Error('Veracore '+res.status);
     const data=await res.json();
     const expanded=fmtSpeech(data.answer||'');
