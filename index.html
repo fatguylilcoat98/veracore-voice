@@ -521,9 +521,7 @@ async function handleNo(){
   const lastDelivered=queue.filter(q=>q.status==='DELIVERED').pop();
   if(!lastDelivered){speak("I don't have that question available to expand on. Chris, do you want to take it?",false);return;}
   try{
-   const controller2=new AbortController();
-const timeoutId2=setTimeout(()=>controller2.abort(),45000);
-const controller2=new AbortController();
+ const controller2=new AbortController();
 const timeoutId2=setTimeout(()=>controller2.abort(),45000);
 const res=await fetch(cfg.url+'/ask',{
       method:'POST',
