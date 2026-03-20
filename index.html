@@ -380,18 +380,55 @@ function recordChunk(){
   setTimeout(()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();},5000);
 }
 
+// ── GROK'S SANITIZER — cleans Whisper output before it hits Veracore ──
+// Credit: Grok (xAI) — council contribution March 19, 2026
+async function sanitizeTranscript(rawText){
+  if(!cfg.openai)return rawText; // fallback: pass through if no key
+  try{
+    const res=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'gpt-4o-mini',
+        max_tokens:120,
+        temperature:0,
+        messages:[{
+          role:'user',
+          content:`You are a transcription cleaner for live Q&A. Take this raw Whisper output and output ONLY a clean, concise, natural question or statement ready for fact-verification. Remove all "uh", "um", "and uh", false starts, repetitions. Fix obvious word errors only if they do not change meaning — for example, "bear core" or "veri core" should become "Veracore", "vericore" should become "Veracore", "bear court" should become "Veracore". Do NOT add, invent, or interpret content. If completely unclear, output only: [UNCLEAR]
+
+Raw transcript: "${rawText}"`
+        }]
+      })
+    });
+    if(!res.ok)return rawText;
+    const data=await res.json();
+    const cleaned=(data.choices?.[0]?.message?.content||'').trim();
+    if(!cleaned||cleaned==='[UNCLEAR]')return null; // signal to drop
+    return cleaned;
+  }catch(e){
+    return rawText; // fallback: pass through on error
+  }
+}
+
 async function processChunk(){
   if(!running||isSpeaking||!audioChunks.length){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
   const blob=new Blob(audioChunks,{type:'audio/webm'});audioChunks=[];
   try{
     const fd=new FormData();
-    fd.append('file',blob,'audio.webm');fd.append('model','whisper-large-v3');fd.append('language','en');
+    fd.append('file',blob,'audio.webm');
+    fd.append('model','whisper-large-v3');
+    fd.append('language','en');
+    // Whisper prompt hint — tells Whisper to expect GNG vocabulary
+    fd.append('prompt','Veracore, GNG, Good Neighbor Guard, verification, confidence, misinformation');
     const res=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.groq},body:fd});
     const data=await res.json();
-    const text=(data.text||'').trim();
-    if(!text||text.length<3){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
-    const alphaR=(text.match(/[a-zA-Z]/g)||[]).length/text.length;
+    const raw=(data.text||'').trim();
+    if(!raw||raw.length<3){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
+    const alphaR=(raw.match(/[a-zA-Z]/g)||[]).length/raw.length;
     if(alphaR<0.6){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
+    // Run Grok's sanitizer
+    const text=await sanitizeTranscript(raw);
+    if(!text){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,300);return;}
     if(isQuestion(text)){await handleQuestion(text);}
     else{cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;}
     if(running&&!isSpeaking)setTimeout(recordChunk,300);
