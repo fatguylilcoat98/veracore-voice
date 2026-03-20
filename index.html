@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   FILE: veracore-auto/index.html
-  Veracore Voice — Cora v2.8 (Dual Lane Conversation Engine)
+  Veracore Voice — Cora v2.9 (Dual Lane Conversation Engine)
   The Good Neighbor Guard
   Built by Christopher Hughes · Sacramento, CA
   Created with the help of AI collaborators (Claude · GPT · Gemini · Groq · Grok)
@@ -102,14 +102,15 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> · <span>CORA</span></div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div class="version">v2.8 — Dual Lane · Always Talking</div>
+    <div class="version">v2.9 — Cora Full Heart · Claude Fast Lane</div>
   </div>
 
   <div class="config-card" id="config-card">
     <div class="config-title">Initialize</div>
     <div class="field"><label>Veracore URL</label><input id="cfg-url" type="text" value="https://veracore.onrender.com"></div>
-    <div class="field"><label>OpenAI Key</label><input id="cfg-openai" type="password" placeholder="sk-..."></div>
-    <div class="field"><label>Groq Key</label><input id="cfg-groq" type="password" placeholder="gsk_..."></div>
+    <div class="field"><label>OpenAI Key (voice)</label><input id="cfg-openai" type="password" placeholder="sk-..."></div>
+    <div class="field"><label>Groq Key (transcription)</label><input id="cfg-groq" type="password" placeholder="gsk_..."></div>
+    <div class="field"><label>Anthropic Key (Cora's heart)</label><input id="cfg-anthropic" type="password" placeholder="sk-ant-..."></div>
     <button class="btn-save" onclick="saveConfig()">Initialize Cora</button>
   </div>
 
@@ -178,7 +179,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
   </div>
 
   <div class="footer">
-    Cora · Veracore Voice · Autonomous Mode v2.8<br>
+    Cora · Veracore Voice · Autonomous Mode v2.9<br>
     The Good Neighbor Guard · Sacramento, CA<br>
     Truth · Safety · We Got Your Back
   </div>
@@ -265,25 +266,27 @@ function setOrbState(state,statusMsg){
 // ─────────────────────────────────────────────────────────────
 //  CONFIG
 // ─────────────────────────────────────────────────────────────
-let cfg={url:'',openai:'',groq:''};
+let cfg={url:'',openai:'',groq:'',anthropic:''};
 function saveConfig(){
   cfg.url=document.getElementById('cfg-url').value.trim();
   cfg.openai=document.getElementById('cfg-openai').value.trim();
   cfg.groq=document.getElementById('cfg-groq').value.trim();
+  cfg.anthropic=document.getElementById('cfg-anthropic').value.trim();
   if(!cfg.openai){nudge('OpenAI key required.');return;}
   if(!cfg.groq){nudge('Groq key required.');return;}
-  localStorage.setItem('vca_url',cfg.url);localStorage.setItem('vca_openai',cfg.openai);localStorage.setItem('vca_groq',cfg.groq);
+  localStorage.setItem('vca_url',cfg.url);localStorage.setItem('vca_openai',cfg.openai);localStorage.setItem('vca_groq',cfg.groq);localStorage.setItem('vca_anthropic',cfg.anthropic);
   document.getElementById('config-card').style.display='none';
   document.getElementById('big-btn').disabled=false;
   setOrbState('idle');sysMsg('Cora is ready.');
 }
 window.addEventListener('load',()=>{
   resizeCanvas();animateSparks();animateArc();
-  const u=localStorage.getItem('vca_url'),o=localStorage.getItem('vca_openai'),g=localStorage.getItem('vca_groq');
+  const u=localStorage.getItem('vca_url'),o=localStorage.getItem('vca_openai'),g=localStorage.getItem('vca_groq'),a=localStorage.getItem('vca_anthropic');
   if(u)document.getElementById('cfg-url').value=u;
   if(o)document.getElementById('cfg-openai').value=o;
   if(g)document.getElementById('cfg-groq').value=g;
-  if(o&&g)saveConfig();
+  if(a)document.getElementById('cfg-anthropic').value=a;
+  if(o&&g){cfg.anthropic=a||'';saveConfig();}
 });
 window.addEventListener('resize',resizeCanvas);
 
@@ -329,7 +332,7 @@ async function coraFastResponse(userText){
     
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':cfg.openai.startsWith('sk-ant')?cfg.openai:'','anthropic-version':'2023-06-01'},
+      headers:{'Content-Type':'application/json','x-api-key':cfg.anthropic,'anthropic-version':'2023-06-01'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:200,
