@@ -98,7 +98,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> VOICE</div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:2px;">v2.1 — Grok Sanitizer Active</div>
+    <div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:2px;">v2.2 — Local Sanitizer · No Latency</div>
   </div>
 
   <div class="config-card" id="config-card">
@@ -383,31 +383,27 @@ function recordChunk(){
 
 // ── GROK'S SANITIZER — cleans Whisper output before it hits Veracore ──
 // Credit: Grok (xAI) — council contribution March 19, 2026
-async function sanitizeTranscript(rawText){
-  if(!cfg.openai)return rawText; // fallback: pass through if no key
+// ── GROK'S SANITIZER — cleans Whisper output before it hits Veracore ──
+// Credit: Grok (xAI) — council contribution March 19, 2026
+// Uses simple local string cleaning — no extra API call needed
+function sanitizeTranscript(rawText){
   try{
-    const res=await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'gpt-4o-mini',
-        max_tokens:120,
-        temperature:0,
-        messages:[{
-          role:'user',
-          content:`You are a transcription cleaner for live Q&A. Take this raw Whisper output and output ONLY a clean, concise, natural question or statement ready for fact-verification. Remove all "uh", "um", "and uh", false starts, repetitions. Fix obvious word errors only if they do not change meaning — for example, "bear core" or "veri core" should become "Veracore", "vericore" should become "Veracore", "bear court" should become "Veracore". Do NOT add, invent, or interpret content. If completely unclear, output only: [UNCLEAR]
-
-Raw transcript: "${rawText}"`
-        }]
-      })
-    });
-    if(!res.ok)return rawText;
-    const data=await res.json();
-    const cleaned=(data.choices?.[0]?.message?.content||'').trim();
-    if(!cleaned||cleaned==='[UNCLEAR]')return null; // signal to drop
-    return cleaned;
+    let t = rawText.trim();
+    // Fix Veracore mishearings
+    t = t.replace(/\b(bear\s*co?re?|veri\s*co?re?|vera\s*co?re?|bear\s*court|bare\s*core|bear\s*call|vericor|baracore|varicore|vericore|veracore\s+caller)\b/gi, 'Veracore');
+    // Remove filler words at start
+    t = t.replace(/^(um+|uh+|ah+|er+|so+|well|okay|ok|yeah|hey|like)[,\s]+/gi, '');
+    // Remove filler words mid-sentence
+    t = t.replace(/\b(um+|uh+|ah+|er+)\b[,\s]*/gi, ' ');
+    // Remove repeated words (e.g. "the the")
+    t = t.replace(/\b(\w+)\s+\1\b/gi, '$1');
+    // Clean up extra spaces
+    t = t.replace(/\s+/g, ' ').trim();
+    // Too short after cleaning
+    if(t.length < 8) return null;
+    return t;
   }catch(e){
-    return rawText; // fallback: pass through on error
+    return rawText; // always pass through on error
   }
 }
 
@@ -427,8 +423,8 @@ async function processChunk(){
     if(!raw||raw.length<3){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
     const alphaR=(raw.match(/[a-zA-Z]/g)||[]).length/raw.length;
     if(alphaR<0.6){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
-    // Run Grok's sanitizer
-    const text=await sanitizeTranscript(raw);
+    // Run Grok's sanitizer (local — no API call, no latency)
+    const text=sanitizeTranscript(raw);
     if(!text){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,300);return;}
     if(isQuestion(text)){await handleQuestion(text);}
     else{cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;}
