@@ -106,7 +106,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> · <span>CORA</span></div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div class="version">v4.1 — Patient Listener · No Prompt Bleed</div>
+    <div class="version">v4.2 — Smart Listener · Thought Completion</div>
   </div>
 
   <div class="config-card" id="config-card">
@@ -638,6 +638,8 @@ async function startSession(){
 
 function stopSession(){
   running=false;
+  if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
+  pendingText='';
   if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();
   if(micStream)micStream.getTracks().forEach(t=>t.stop());
   micStream=null;mediaRecorder=null;
@@ -649,14 +651,48 @@ function stopSession(){
 
 function killAll(){
   if(currentSource){try{currentSource.stop();}catch(e){}currentSource=null;}
+  if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
+  pendingText='';
   isSpeaking=false;verificationQueue=[];removeTyping();stopSparks();stopSession();
   document.getElementById('verify-banner').classList.remove('show');
   sysMsg('Stopped.');
 }
 
 // ─────────────────────────────────────────────────────────────
-//  RECORDING LOOP
+//  RECORDING LOOP — Option B: Completion Detection
 // ─────────────────────────────────────────────────────────────
+let pendingText = '';        // accumulates partial thoughts
+let pendingTimer = null;     // fires response after silence
+
+// Detects if a transcribed chunk feels like a complete thought
+function isThoughtComplete(text){
+  const t = text.trim().toLowerCase();
+
+  // Explicit completion signals
+  if(/\b(that('s| is) all|go ahead cora|cora go ahead|your turn cora)\b/.test(t)) return true;
+
+  // Ends with sentence-ending punctuation
+  if(/[.!?]$/.test(text.trim())) return true;
+
+  // Ends with a complete question structure
+  const questionEnders = ['right?','correct?','yes?','no?','okay?','ok?','though?','though.','space?','eye?','earth?','true?','false?','real?'];
+  if(questionEnders.some(e => t.endsWith(e.replace('?',''))||t.endsWith(e))) return true;
+
+  // Looks like a complete statement (subject + verb + object pattern, 8+ words)
+  const words = t.split(/\s+/).filter(w=>w.length>1);
+  if(words.length >= 8 && !t.endsWith(',') && !t.endsWith('and') && !t.endsWith('but') && !t.endsWith('or') && !t.endsWith('with') && !t.endsWith('can')) return true;
+
+  // Incomplete connectors — definitely more coming
+  const incompleteEnders = ['and','but','or','so','because','with','also','can','to','the','a','an','in','of','for','on','at','by','from','that','which','who','what','when','where','how','whether','if','as'];
+  const lastWord = words[words.length-1]?.replace(/[^a-z]/g,'');
+  if(incompleteEnders.includes(lastWord)) return false;
+
+  // Short fragment — wait for more
+  if(words.length < 5) return false;
+
+  return true; // default: respond if none of the above matched
+}
+
 function recordChunk(){
   if(!running||isSpeaking)return;
   audioChunks=[];
@@ -671,8 +707,7 @@ async function processChunk(){
   if(!running||isSpeaking||!audioChunks.length){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
   const blob=new Blob(audioChunks,{type:'audio/webm'});audioChunks=[];
 
-  // ── ENERGY CHECK — filter fan noise before calling Whisper ──
-  // Decode audio and measure RMS volume. Skip if too quiet.
+  // ── ENERGY CHECK ──
   try{
     const arrayBuf=await blob.arrayBuffer();
     const actx=getCtx();
@@ -682,14 +717,17 @@ async function processChunk(){
     let sumSquares=0;
     for(let i=0;i<channelData.length;i++) sumSquares+=channelData[i]*channelData[i];
     const rms=Math.sqrt(sumSquares/channelData.length);
-    // RMS below 0.015 is ambient noise / fans — skip it
     if(rms<0.015){
-      if(running&&!isSpeaking)setTimeout(recordChunk,200);
+      // Silence detected — if we have pending text, fire it now
+      if(pendingText.trim().length > 0){
+        if(pendingTimer) clearTimeout(pendingTimer);
+        pendingTimer = setTimeout(()=>flushPending(), 800);
+      } else {
+        if(running&&!isSpeaking)setTimeout(recordChunk,200);
+      }
       return;
     }
-  }catch(e){
-    // If energy check fails just proceed — better to check than skip
-  }
+  }catch(e){}
 
   try{
     const fd=new FormData();
@@ -700,11 +738,47 @@ async function processChunk(){
     const res=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{method:'POST',headers:{'Authorization':'Bearer '+cfg.groq},body:fd});
     const data=await res.json();
     const raw=(data.text||'').trim();
-    if(!raw||raw.length<3){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
-    const text=sanitize(raw);
-    if(!text||!shouldRespond(text)){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
-    await handleInput(text);
+    if(!raw||raw.length<3){
+      // Empty chunk — if pending, start flush timer
+      if(pendingText.trim()){
+        if(pendingTimer) clearTimeout(pendingTimer);
+        pendingTimer = setTimeout(()=>flushPending(), 1500);
+      } else {
+        if(running&&!isSpeaking)setTimeout(recordChunk,200);
+      }
+      return;
+    }
+
+    const chunk=sanitize(raw);
+    if(!chunk){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
+
+    // Accumulate into pending
+    pendingText = pendingText ? pendingText + ' ' + chunk : chunk;
+
+    // Check if thought is complete
+    if(isThoughtComplete(pendingText)){
+      if(pendingTimer) clearTimeout(pendingTimer);
+      await flushPending();
+    } else {
+      // Thought incomplete — keep listening, set safety timer
+      if(pendingTimer) clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(()=>flushPending(), 3000); // 3s max wait
+      if(running&&!isSpeaking) setTimeout(recordChunk, 300);
+    }
+
   }catch(err){if(running&&!isSpeaking)setTimeout(recordChunk,800);}
+}
+
+async function flushPending(){
+  if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
+  const text = pendingText.trim();
+  pendingText = ''; // clear immediately
+  if(!text||!shouldRespond(text)){
+    cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;
+    if(running&&!isSpeaking)setTimeout(recordChunk,200);
+    return;
+  }
+  await handleInput(text);
 }
 
 // ─────────────────────────────────────────────────────────────
