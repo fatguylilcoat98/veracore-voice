@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   FILE: veracore-auto/index.html
-  Veracore Voice — Cora v2.9 (Dual Lane Conversation Engine)
+  Veracore Voice — Cora v3.0 (Dual Lane Conversation Engine)
   The Good Neighbor Guard
   Built by Christopher Hughes · Sacramento, CA
   Created with the help of AI collaborators (Claude · GPT · Gemini · Groq · Grok)
@@ -102,7 +102,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> · <span>CORA</span></div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div class="version">v2.9 — Cora Full Heart · Claude Fast Lane</div>
+    <div class="version">v3.0 — v3.0 — No Echo · Smart Verify</div>
   </div>
 
   <div class="config-card" id="config-card">
@@ -179,7 +179,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
   </div>
 
   <div class="footer">
-    Cora · Veracore Voice · Autonomous Mode v2.9<br>
+    Cora · Veracore Voice · Autonomous Mode v3.0<br>
     The Good Neighbor Guard · Sacramento, CA<br>
     Truth · Safety · We Got Your Back
   </div>
@@ -400,49 +400,35 @@ async function handleInput(text){
   addBubble('human',text);
   setOrbState('thinking','"'+text.substring(0,35)+(text.length>35?'...':'')+'"');
 
-  // Detect if this needs verification or just conversation
   const needsVerification=needsFact(text);
 
   if(needsVerification){
-    // Show verification banner
     document.getElementById('verify-banner').classList.add('show');
-    
-    // Start background verification immediately
     veracoreVerify(text,(verifiedAnswer,confidence)=>{
-      // Verification complete — queue it for delivery
       verificationQueue.push({answer:verifiedAnswer,confidence,original:text});
       document.getElementById('s-verified').textContent=++cntVerified;
-      // If not speaking right now, deliver immediately
-      if(!isSpeaking){
-        deliverNextVerified();
-      }
-      // Hide banner when done
       document.getElementById('verify-banner').classList.remove('show');
+      // Only deliver if not currently speaking
+      if(!isSpeaking) deliverNextVerified();
     });
   }
 
-  // Fast lane always runs — Cora responds immediately
+  // Fast lane — Cora responds immediately from the heart
   const fastReply=await coraFastResponse(text);
-  
-  if(needsVerification){
-    // Cora acknowledges she's checking
-    const bridge=fastReply+' Let me also pull the verified data on that.';
-    addBubble('cora',bridge,false);
-    await speak(bridge);
-  }else{
-    addBubble('cora',fastReply,false);
-    await speak(fastReply);
-  }
+  addBubble('cora',fastReply,false);
+  await speak(fastReply);
 
   cntAnswered++;document.getElementById('s-answered').textContent=cntAnswered;
-  
-  // After speaking, check if verification came back
+
+  // If verification came back while we were speaking, deliver it now
   if(verificationQueue.length>0&&needsVerification){
     await deliverNextVerified();
   }
-  
+
   setOrbState('listening','Listening...');
-  if(running)setTimeout(recordChunk,300);
+  // Bug fix: wait 2 full seconds after speaking before mic opens
+  // This prevents Cora hearing her own voice
+  if(running) setTimeout(recordChunk, 2000);
 }
 
 async function deliverNextVerified(){
@@ -450,16 +436,30 @@ async function deliverNextVerified(){
   const item=verificationQueue.shift();
   const sentences=item.answer.match(/[^.!?]+[.!?]*/g)||[item.answer];
   const spoken=sentences.slice(0,3).join(' ').trim();
-  const intro="After verifying that — "+spoken;
-  addBubble('cora',intro,true);
-  await speak(intro);
+  // No announcement — just speak the verified answer naturally
+  addBubble('cora',spoken,true);
+  await speak(spoken);
 }
 
-// Does this text need fact verification?
+// Strict fact detection — only real substantive factual questions
+// NOT casual questions like "you know what I mean?"
 function needsFact(text){
-  const t=text.toLowerCase();
-  const factWords=['true','false','fact','real','actually','really','prove','certain','accurate','correct','wrong','right','does','is it','are','was','were','did','can','will','should','how many','how much','when did','where is','who is','what is','what are','why does','why is'];
-  return factWords.some(w=>t.includes(w))||t.endsWith('?');
+  const t=text.toLowerCase().trim();
+  const words=t.split(/\s+/);
+  
+  // Must be at least 5 words to be a real factual question
+  if(words.length<5) return false;
+  
+  // Must start with a real question word AND have substance
+  const factStarters=['what is','what are','what was','what were','how does','how do','how did','how many','how much','why does','why do','why did','why is','who is','who was','when did','when was','when is','where is','where was','is it true','is it safe','can you verify','is there','does it','did they','are they','was it','were they'];
+  const hasFactStarter=factStarters.some(s=>t.startsWith(s)||t.includes(' '+s));
+  
+  // Exclude casual question patterns
+  const casualPatterns=['you know what i mean','know what i mean','right','does that make sense','what do you think','what about you','how are you','how do you feel','you know','i mean'];
+  const isCasual=casualPatterns.some(p=>t.includes(p));
+  
+  if(isCasual) return false;
+  return hasFactStarter;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -554,7 +554,12 @@ async function speak(text){
   if(!text||!cfg.openai)return;
   isSpeaking=true;setOrbState('speaking');
   return new Promise(async(resolve)=>{
-    function done(){isSpeaking=false;if(running)setOrbState('listening','Listening...');else setOrbState('idle');resolve();}
+    function done(){
+      isSpeaking=false;
+      if(running)setOrbState('listening','Listening...');
+      else setOrbState('idle');
+      resolve();
+    }
     try{
       const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1',voice:'nova',input:text})});
       if(!res.ok)throw new Error('TTS '+res.status);
