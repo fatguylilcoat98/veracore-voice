@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   FILE: veracore-auto/index.html
-  Veracore Voice — Cora v3.0 (Dual Lane Conversation Engine)
+  Veracore Voice — Cora v3.1 (Dual Lane Conversation Engine)
   The Good Neighbor Guard
   Built by Christopher Hughes · Sacramento, CA
   Created with the help of AI collaborators (Claude · GPT · Gemini · Groq · Grok)
@@ -102,7 +102,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> · <span>CORA</span></div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div class="version">v3.0 — v3.0 — No Echo · Smart Verify</div>
+    <div class="version">v3.1 — v3.1 — Energy Gate · No Fan Noise</div>
   </div>
 
   <div class="config-card" id="config-card">
@@ -179,7 +179,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
   </div>
 
   <div class="footer">
-    Cora · Veracore Voice · Autonomous Mode v3.0<br>
+    Cora · Veracore Voice · Autonomous Mode v3.1<br>
     The Good Neighbor Guard · Sacramento, CA<br>
     Truth · Safety · We Got Your Back
   </div>
@@ -529,6 +529,27 @@ function recordChunk(){
 async function processChunk(){
   if(!running||isSpeaking||!audioChunks.length){if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
   const blob=new Blob(audioChunks,{type:'audio/webm'});audioChunks=[];
+
+  // ── ENERGY CHECK — filter fan noise before calling Whisper ──
+  // Decode audio and measure RMS volume. Skip if too quiet.
+  try{
+    const arrayBuf=await blob.arrayBuffer();
+    const actx=getCtx();
+    let audioBuf;
+    try{ audioBuf=await actx.decodeAudioData(arrayBuf.slice(0)); }catch(e){ if(running&&!isSpeaking)setTimeout(recordChunk,200);return; }
+    const channelData=audioBuf.getChannelData(0);
+    let sumSquares=0;
+    for(let i=0;i<channelData.length;i++) sumSquares+=channelData[i]*channelData[i];
+    const rms=Math.sqrt(sumSquares/channelData.length);
+    // RMS below 0.015 is ambient noise / fans — skip it
+    if(rms<0.015){
+      if(running&&!isSpeaking)setTimeout(recordChunk,200);
+      return;
+    }
+  }catch(e){
+    // If energy check fails just proceed — better to check than skip
+  }
+
   try{
     const fd=new FormData();
     fd.append('file',blob,'audio.webm');
