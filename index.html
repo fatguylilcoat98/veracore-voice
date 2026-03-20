@@ -106,7 +106,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> · <span>CORA</span></div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div class="version">v4.3 — Veracore Voice · One Lane</div>
+    <div class="version">v4.4 — Live Timer · Unlimited · Natural Pause</div>
   </div>
 
   <div class="config-card" id="config-card">
@@ -462,9 +462,22 @@ async function handleInput(text){
   fillerLoop(); // runs in background
 
   // Ask Veracore — this IS the answer
+  // Start elapsed timer — visible to audience
+  let timerInterval = null;
+  let elapsedSeconds = 0;
+  const timerEl = document.getElementById('verify-banner');
+  if(timerEl){
+    timerEl.classList.add('show');
+    timerEl.textContent = '⚙ Veracore verifying... 0s';
+    timerInterval = setInterval(()=>{
+      elapsedSeconds++;
+      if(timerEl) timerEl.textContent = `⚙ Veracore verifying... ${elapsedSeconds}s`;
+    }, 1000);
+  }
+
   try{
     const controller = new AbortController();
-    const tid = setTimeout(()=>controller.abort(), 45000);
+    const tid = setTimeout(()=>controller.abort(), 60000);
     const res = await fetch(cfg.url+'/ask',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -472,6 +485,8 @@ async function handleInput(text){
       signal:controller.signal
     });
     clearTimeout(tid);
+    clearInterval(timerInterval);
+    if(timerEl) timerEl.classList.remove('show');
     veracoreDone = true;
 
     if(!res.ok) throw new Error('Veracore '+res.status);
@@ -486,7 +501,7 @@ async function handleInput(text){
       addBubble('cora', handoff, false);
       await speak(handoff);
     } else {
-      // Confidence-based delivery — Veracore's voice, Cora's warmth
+      // Unlimited response for 1MC — full Veracore answer, no trimming
       let spoken = '';
       if(confidence >= 0.75){
         goldBurst();
@@ -494,16 +509,16 @@ async function handleInput(text){
       } else {
         spoken = "I want to be honest with you — " + answer;
       }
-      const sentences = spoken.match(/[^.!?]+[.!?]*/g)||[spoken];
-      const trimmed = sentences.slice(0,4).join(' ').trim();
-      addBubble('cora', trimmed, true);
+      // Show full answer in bubble, speak full answer
+      addBubble('cora', spoken, true);
       cntAnswered++;document.getElementById('s-answered').textContent=cntAnswered;
       cntVerified++;document.getElementById('s-verified').textContent=cntVerified;
-      await speak(trimmed);
+      await speak(spoken);
     }
   }catch(err){
+    clearInterval(timerInterval);
+    if(timerEl) timerEl.classList.remove('show');
     veracoreDone = true;
-    // If Veracore times out or fails — Cora handles it honestly
     const fallback = "I ran into an issue checking that one. Chris, do you want to take it?";
     addBubble('cora', fallback, false);
     await speak(fallback);
@@ -631,7 +646,7 @@ function recordChunk(){
   mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
   mediaRecorder.onstop=processChunk;
   mediaRecorder.start();
-  setTimeout(()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();},7000);
+  setTimeout(()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();},8000);
 }
 
 async function processChunk(){
@@ -693,7 +708,7 @@ async function processChunk(){
     } else {
       // Thought incomplete — keep listening, set safety timer
       if(pendingTimer) clearTimeout(pendingTimer);
-      pendingTimer = setTimeout(()=>flushPending(), 3000); // 3s max wait
+      pendingTimer = setTimeout(()=>flushPending(), 4000); // 4s max wait for natural speech pause
       if(running&&!isSpeaking) setTimeout(recordChunk, 300);
     }
 
