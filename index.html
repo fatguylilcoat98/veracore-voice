@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   FILE: veracore-auto/index.html
-  Veracore Voice — Cora v3.1 (Dual Lane Conversation Engine)
+  Veracore Voice — Cora v4.0 (Presence System · Council Edition)
   The Good Neighbor Guard
   Built by Christopher Hughes · Sacramento, CA
   Created with the help of AI collaborators (Claude · GPT · Gemini · Groq · Grok)
@@ -40,6 +40,10 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
 .orb-section.listening .orb-halo{opacity:1;animation:halo-breathe 3s ease-in-out infinite}
 .orb-section.speaking .orb-halo{opacity:1;background:radial-gradient(circle,rgba(0,229,190,.12) 0%,transparent 70%);animation:halo-throb .7s ease-in-out infinite alternate}
 .orb-section.thinking .orb-halo{opacity:1;background:radial-gradient(circle,rgba(240,165,0,.08) 0%,transparent 70%);animation:halo-breathe 1.5s ease-in-out infinite}
+.orb-section.inhale .orb-halo{opacity:1;background:radial-gradient(circle,rgba(0,201,255,.1) 0%,transparent 70%);animation:halo-inhale .4s ease-out forwards}
+@keyframes halo-inhale{from{transform:translate(-50%,-54%) scale(.95);opacity:.3}to{transform:translate(-50%,-54%) scale(1.05);opacity:.8}}
+.orb-section.inhale #gng-logo-img{filter:drop-shadow(0 0 14px rgba(0,201,255,.6));animation:logo-inhale .4s ease-out forwards}
+@keyframes logo-inhale{from{transform:scale(.97)}to{transform:scale(1.02)}}
 @keyframes halo-breathe{0%,100%{transform:translate(-50%,-54%) scale(1);opacity:.6}50%{transform:translate(-50%,-54%) scale(1.08);opacity:1}}
 @keyframes halo-throb{from{transform:translate(-50%,-54%) scale(1);opacity:.8}to{transform:translate(-50%,-54%) scale(1.12);opacity:1}}
 .gng-orb{position:relative;width:220px;height:220px;cursor:pointer;margin-bottom:12px}
@@ -102,7 +106,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> · <span>CORA</span></div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div class="version">v3.1 — v3.1 — Energy Gate · No Fan Noise</div>
+    <div class="version">v4.0 — Presence System · Council Edition</div>
   </div>
 
   <div class="config-card" id="config-card">
@@ -233,6 +237,14 @@ function animateSparks(){
 }
 function animateArc(){arcAngle+=1.2;const arc=document.getElementById('spin-arc');if(arc)arc.setAttribute('transform',`rotate(${arcAngle},110,110)`);requestAnimationFrame(animateArc);}
 function startSparks(i,t){stopSparks();createSpark(i);sparkInterval=setInterval(()=>createSpark(i),t||800);}
+function goldBurst(){
+  // One-time gold spark burst for STRONG AGREEMENT
+  for(let i=0;i<20;i++){
+    const angle=Math.random()*Math.PI*2;
+    const speed=2+Math.random()*4;
+    sparks.push({x:140,y:140,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:1,decay:.025+Math.random()*.02,size:1.5+Math.random()*2,color:'#ffcc44'});
+  }
+}
 function stopSparks(){if(sparkInterval){clearInterval(sparkInterval);sparkInterval=null;}}
 
 // ─────────────────────────────────────────────────────────────
@@ -250,6 +262,7 @@ function setOrbState(state,statusMsg){
   stopSparks();
   const S={
     idle:{label:'Tap to begin',lc:'',sparks:false,bars:false,rc:'rgba(0,201,255,.4)',ic:'rgba(0,201,255,.2)'},
+    inhale:{label:'...',lc:'teal',sparks:false,bars:false,rc:'rgba(0,201,255,.5)',ic:'rgba(0,201,255,.25)'},
     listening:{label:'Listening',lc:'teal',sparks:{i:.5,t:2000},bars:false,rc:'rgba(0,201,255,.7)',ic:'rgba(0,201,255,.3)'},
     thinking:{label:'Thinking...',lc:'gold',sparks:{i:1.8,t:350},bars:false,rc:'rgba(240,165,0,.8)',ic:'rgba(240,165,0,.4)'},
     speaking:{label:'Speaking',lc:'teal',sparks:{i:.9,t:550},bars:true,rc:'rgba(0,229,190,.9)',ic:'rgba(0,229,190,.4)'}
@@ -394,51 +407,132 @@ async function veracoreVerify(text,onComplete){
   }
 }
 
-// MAIN HANDLER — runs both lanes simultaneously
+// ─────────────────────────────────────────────────────────────
+//  PRESENCE PHRASE POOLS — Council Edition
+// ─────────────────────────────────────────────────────────────
+const PRESENCE_POOLS = {
+  general: [
+    "Alright… let me take a real look at that for you.",
+    "Yeah, give me just a second — I want to make sure I get you something solid.",
+    "Hang on — I've got you.",
+    "Okay… just a second, I've got you.",
+    "That's a good one… let me check it properly."
+  ],
+  deep: [
+    "Yeah… this matters. Let me check it properly for you.",
+    "Hold on — I'm making sure this is actually accurate, not just quick.",
+    "Give me a second — I want to be careful with this one.",
+    "Alright… I'm gonna slow this down and make sure this is right."
+  ],
+  safety: [
+    "Alright… give me a second. I want to be really careful with this.",
+    "I'm not rushing this one. Give me a second.",
+    "Hold on… this is important. Let me make sure I've got this right.",
+    "I'm gonna check this properly — I don't want to give you anything wrong."
+  ],
+  filler: [
+    "Hmm… yeah, pulling it together.",
+    "Still with you… almost there.",
+    "Yeah… just making sure this is right.",
+    "Give me one more second on this."
+  ]
+};
+
+function pickPhrase(pool){
+  const arr = PRESENCE_POOLS[pool] || PRESENCE_POOLS.general;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function classifyInput(text){
+  const t = text.toLowerCase();
+  // Safety first
+  const safetyWords = ['health','doctor','medicine','medication','drug','pain','hurt','sick','emergency','poison','suicide','self harm','legal','lawyer','money','investment','scam','fraud','bank','password','social security'];
+  if(safetyWords.some(w=>t.includes(w))) return 'safety';
+  // Deep questions
+  const deepWords = ['explain','understand','why does','how does','difference between','compare','prove','evidence','research','study','science','history','cause','effect','impact'];
+  if(deepWords.some(w=>t.includes(w))) return 'deep';
+  return 'general';
+}
+
+// MAIN HANDLER — Full Presence System v4.0
 async function handleInput(text){
   cntHeard++;document.getElementById('s-heard').textContent=cntHeard;
   addBubble('human',text);
-  setOrbState('thinking','"'+text.substring(0,35)+(text.length>35?'...':'')+'"');
 
-  const needsVerification=needsFact(text);
+  // 200ms inhale — orb begins soft expansion
+  setOrbState('inhale');
+  await new Promise(r=>setTimeout(r,200));
 
+  const questionType = classifyInput(text);
+  const needsVerification = needsFact(text);
+
+  // Start background verification immediately if needed
   if(needsVerification){
     document.getElementById('verify-banner').classList.add('show');
     veracoreVerify(text,(verifiedAnswer,confidence)=>{
-      verificationQueue.push({answer:verifiedAnswer,confidence,original:text});
+      verificationQueue.push({answer:verifiedAnswer,confidence,original:text,qType:questionType});
       document.getElementById('s-verified').textContent=++cntVerified;
       document.getElementById('verify-banner').classList.remove('show');
-      // Only deliver if not currently speaking
       if(!isSpeaking) deliverNextVerified();
     });
   }
 
-  // Fast lane — Cora responds immediately from the heart
-  const fastReply=await coraFastResponse(text);
-  addBubble('cora',fastReply,false);
+  setOrbState('thinking');
+
+  // Speak presence phrase immediately
+  const presencePhrase = pickPhrase(questionType);
+  await speak(presencePhrase);
+
+  // Get fast lane response from Claude
+  const startTime = Date.now();
+  const fastReplyPromise = coraFastResponse(text);
+
+  // If fast lane takes > 2s, speak one filler
+  let fillerSpoken = false;
+  const fillerTimeout = setTimeout(async()=>{
+    if(!fillerSpoken && isSpeaking===false){
+      fillerSpoken = true;
+      await speak(pickPhrase('filler'));
+    }
+  }, 2000);
+
+  const fastReply = await fastReplyPromise;
+  clearTimeout(fillerTimeout);
+
+  addBubble('cora', fastReply, false);
   await speak(fastReply);
 
   cntAnswered++;document.getElementById('s-answered').textContent=cntAnswered;
 
-  // If verification came back while we were speaking, deliver it now
-  if(verificationQueue.length>0&&needsVerification){
+  // If verification came back, deliver it naturally
+  if(verificationQueue.length>0 && needsVerification){
     await deliverNextVerified();
   }
 
   setOrbState('listening','Listening...');
-  // Bug fix: wait 2 full seconds after speaking before mic opens
-  // This prevents Cora hearing her own voice
-  if(running) setTimeout(recordChunk, 2000);
+  // 2.5s silence buffer — prevents echo loop
+  if(running) setTimeout(recordChunk, 2500);
 }
 
 async function deliverNextVerified(){
   if(!verificationQueue.length)return;
-  const item=verificationQueue.shift();
-  const sentences=item.answer.match(/[^.!?]+[.!?]*/g)||[item.answer];
-  const spoken=sentences.slice(0,3).join(' ').trim();
-  // No announcement — just speak the verified answer naturally
-  addBubble('cora',spoken,true);
-  await speak(spoken);
+  const item = verificationQueue.shift();
+  const sentences = item.answer.match(/[^.!?]+[.!?]*/g)||[item.answer];
+  const spoken = sentences.slice(0,3).join(' ').trim();
+
+  // Confidence-based bridge — no announcement, just natural delivery
+  let bridge = '';
+  if(item.confidence >= 0.75){
+    goldBurst(); // visual celebration for strong agreement
+    bridge = "Alright… I checked that across multiple solid sources and they all line up. " + spoken;
+  } else if(item.confidence >= 0.45){
+    bridge = "Most of what I'm seeing points the same direction. " + spoken;
+  } else {
+    bridge = "I want to be straight with you — I'm not confident enough in this one. Chris, do you want to take it?";
+  }
+
+  addBubble('cora', bridge, true);
+  await speak(bridge);
 }
 
 // Strict fact detection — only real substantive factual questions
@@ -582,7 +676,7 @@ async function speak(text){
       resolve();
     }
     try{
-      const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1',voice:'nova',input:text})});
+      const res=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},body:JSON.stringify({model:'tts-1-hd',voice:'nova',input:text})});
       if(!res.ok)throw new Error('TTS '+res.status);
       const buf=await res.arrayBuffer();
       const actx=getCtx();
