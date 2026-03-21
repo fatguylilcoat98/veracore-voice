@@ -106,7 +106,7 @@ body.speaking::before{background:radial-gradient(ellipse 80% 60% at 50% -10%,rgb
     <div class="gng-eyebrow">The Good Neighbor Guard</div>
     <div class="title">VERA<span>CORE</span> · <span>CORA</span></div>
     <div class="tagline">Truth · Safety · We Got Your Back</div>
-    <div class="version">v4.4 — Live Timer · Unlimited · Natural Pause</div>
+    <div class="version">v4.5 — Pure Veracore Voice</div>
   </div>
 
   <div class="config-card" id="config-card">
@@ -501,19 +501,13 @@ async function handleInput(text){
       addBubble('cora', handoff, false);
       await speak(handoff);
     } else {
-      // Unlimited response for 1MC — full Veracore answer, no trimming
-      let spoken = '';
-      if(confidence >= 0.75){
-        goldBurst();
-        spoken = answer;
-      } else {
-        spoken = "I want to be honest with you — " + answer;
-      }
-      // Show full answer in bubble, speak full answer
-      addBubble('cora', spoken, true);
+      // PURE VERACORE — no wrapper, no prefix, no rewriting
+      // Cora speaks Veracore's exact words. Word for word. Always.
+      if(confidence >= 0.75) goldBurst();
+      addBubble('cora', answer, true);
       cntAnswered++;document.getElementById('s-answered').textContent=cntAnswered;
       cntVerified++;document.getElementById('s-verified').textContent=cntVerified;
-      await speak(spoken);
+      await speak(answer);
     }
   }catch(err){
     clearInterval(timerInterval);
