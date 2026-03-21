@@ -340,13 +340,11 @@ async function handleInput(text){
   addBubble('human',text);
   setOrbState('thinking');
 
-  // ── FIRE VERACORE IN THE NAMED WINDOW IMMEDIATELY ──
-  // Fires at same moment Cora starts — they race together
+  // ── FIRE VERACORE IMMEDIATELY — before anything else ──
+  // This fires the moment Cora hears the question
+  // Veracore and Cora now race simultaneously
   const encodedQ = encodeURIComponent(text);
   window.open('https://veracore.onrender.com?q=' + encodedQ, 'veracore-live');
-
-  // Small yield to let browser open/update Veracore window before heavy fetch
-  await new Promise(r => setTimeout(r, 50));
 
   let elapsed=0;
   let longWaitFired=false;
@@ -393,11 +391,9 @@ async function handleInput(text){
       addBubble('cora',h);await speak(h);
     }else{
       if(confidence>=0.75)goldBurst();
-      // PURE VERACORE — text and voice together
+      // PURE VERACORE — bubble appears exactly when voice starts
       cntAnswered++;document.getElementById('s-answered').textContent=cntAnswered;
-      // Add bubble and speak at exact same moment
-      addBubble('cora',answer);
-      await speak(answer);
+      await speak(answer, answer);
     }
   }catch(err){
     clearInterval(timerInt);timerEl.classList.remove('show');
@@ -515,7 +511,7 @@ async function flushPending(){
 // TTS
 function getCtx(){if(!audioCtx||audioCtx.state==='closed')audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
 
-async function speak(text){
+async function speak(text, bubbleText){
   if(!text||!cfg.openai)return;
   isSpeaking=true;setOrbState('speaking');
   if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
@@ -530,6 +526,8 @@ async function speak(text){
       const audioBuf=await actx.decodeAudioData(buf);
       const src=actx.createBufferSource();
       src.buffer=audioBuf;src.connect(actx.destination);currentSource=src;
+      // Add bubble exactly when voice starts playing
+      if(bubbleText)addBubble('cora',bubbleText);
       src.onended=()=>done();src.start(0);
       setTimeout(()=>{if(isSpeaking)done();},audioBuf.duration*1000+2000);
     }catch(err){done();}
