@@ -346,6 +346,32 @@ async function handleInput(text){
   const encodedQ = encodeURIComponent(text);
   window.open('https://veracore.onrender.com?q=' + encodedQ, 'veracore-live');
 
+  // ── DYNAMIC FILLER — GPT generates a fresh phrase every time ──
+  // Runs in parallel so it fires immediately while Veracore thinks
+  (async()=>{
+    try{
+      const fillerRes=await fetch('https://api.openai.com/v1/chat/completions',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+cfg.openai,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'gpt-3.5-turbo',
+          max_tokens:40,
+          temperature:1.1,
+          messages:[{role:'system',content:`You are Cora, a warm and sharp AI assistant speaking live to an audience. 
+Generate ONE short, natural spoken filler phrase (10-18 words max) that you say while you're pulling up the answer. 
+Rules: Never start with "I". Sound human, not robotic. Never repeat yourself — be creative and varied every time. 
+Examples of the RIGHT vibe: "Let's see what the data says on that one.", "Running that through the engine right now.", "Good one — pulling that up.", "Cross-referencing sources on that.", "On it — give me just a breath.", "That one's worth checking carefully."`},
+          {role:'user',content:`Question just asked: "${text}"\nGenerate one fresh filler phrase. Reply with ONLY the phrase, nothing else.`}]
+        })
+      });
+      if(fillerRes.ok){
+        const fd=await fillerRes.json();
+        const phrase=(fd.choices?.[0]?.message?.content||'').trim().replace(/^["']|["']$/g,'');
+        if(phrase&&phrase.length>5)await speak(phrase);
+      }
+    }catch(e){/* silent fail — filler is nice-to-have */}
+  })();
+
   let elapsed=0;
   let longWaitFired=false;
   const timerEl=document.getElementById('timer-bar');
