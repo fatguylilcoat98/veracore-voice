@@ -25,10 +25,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
 
 /* TOP BAR */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
-.brand{font-family:var(--orb);font-size:13px;font-weight:700;letter-spacing:3px;color:var(--teal);}
-.brand span{color:var(--text2);}
+.brand{font-family:var(--orb);font-size:17px;font-weight:700;letter-spacing:3px;color:var(--teal);}
+.brand span{color:#ccd6f6;}
 .tagline{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--text3);}
-.version{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px;}
+.version{font-family:var(--mono);font-size:13px;color:#8892b0;letter-spacing:1px;}
 
 /* PANELS */
 .panels{display:flex;flex:1;overflow:hidden;gap:1px;background:var(--border);}
@@ -56,7 +56,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
 .gng-orb{position:relative;width:220px;height:220px;margin-bottom:6px;}
 .orb-svg{position:absolute;inset:0;width:100%;height:100%;}
 .orb-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;}
-#gng-logo{width:84px;height:84px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 12px rgba(0,201,255,.7));transition:all .6s;}
+#gng-logo{width:170px;height:170px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 12px rgba(0,201,255,.7));transition:all .6s;}
 .orb-wrap.listening #gng-logo{filter:drop-shadow(0 0 18px rgba(0,201,255,.9));animation:logo-breathe 3s ease-in-out infinite;}
 .orb-wrap.thinking #gng-logo{filter:drop-shadow(0 0 18px rgba(240,165,0,.9));animation:logo-flicker 1.5s ease-in-out infinite;}
 .orb-wrap.speaking #gng-logo{filter:drop-shadow(0 0 24px rgba(0,229,190,1));animation:logo-throb .5s ease-in-out infinite alternate;}
@@ -64,7 +64,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
 @keyframes logo-flicker{0%,100%{opacity:1}33%{opacity:.7}66%{opacity:.9}}
 @keyframes logo-throb{from{transform:scale(1)}to{transform:scale(1.05)}}
 #spark-canvas{position:absolute;inset:-20px;width:calc(100% + 40px);height:calc(100% + 40px);pointer-events:none;z-index:3;}
-.orb-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);text-align:center;transition:all .4s;}
+.orb-label{font-family:var(--mono);font-size:16px;letter-spacing:3px;text-transform:uppercase;color:var(--text2);text-align:center;transition:all .4s;margin-top:8px;}
 .orb-label.teal{color:var(--teal);}.orb-label.gold{color:var(--gold);}
 .timer-bar{background:rgba(240,165,0,.06);border:1px solid rgba(240,165,0,.2);border-radius:6px;padding:5px 10px;margin-bottom:8px;font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:1px;text-align:center;display:none;width:100%;animation:pulse 1.5s ease-in-out infinite;}
 .timer-bar.show{display:block;}
@@ -95,11 +95,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
 
 /* BOTTOM BAR */
 .bottombar{padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.btn-main{padding:9px 24px;border-radius:50px;font-family:var(--orb);font-size:9px;font-weight:600;letter-spacing:2px;border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .3s;text-transform:uppercase;}
+.btn-main{padding:12px 30px;border-radius:50px;font-family:var(--orb);font-size:12px;font-weight:600;letter-spacing:2px;border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .3s;text-transform:uppercase;}
 .btn-main:hover{border-color:var(--teal);color:var(--teal);}
 .btn-main.running{border-color:var(--red);color:var(--red);}
 .btn-main:disabled{opacity:.3;cursor:not-allowed;}
-.btn-kill{padding:9px 14px;border-radius:6px;background:transparent;border:1px solid rgba(255,71,87,.3);color:var(--red);font-family:var(--orb);font-size:9px;font-weight:600;cursor:pointer;letter-spacing:2px;}
+.btn-kill{padding:12px 18px;border-radius:6px;background:transparent;border:1px solid rgba(255,71,87,.3);color:var(--red);font-family:var(--orb);font-size:12px;font-weight:600;cursor:pointer;letter-spacing:2px;}
 .stats{display:flex;gap:14px;margin-left:auto;}
 .stat{text-align:center;}
 .stat-n{font-size:15px;font-weight:500;color:var(--teal);font-family:var(--mono);line-height:1;}
@@ -138,7 +138,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
     <div class="tagline">The Good Neighbor Guard · Sacramento, CA · Truth · Safety · We Got Your Back</div>
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
-    <button onclick="launchVeracore()" style="cursor:pointer;font-size:11px;padding:8px 18px;background:linear-gradient(135deg,#f0a500,#ffcc44);color:#06080d;border:none;border-radius:8px;font-weight:700;font-family:var(--orb);letter-spacing:2px;box-shadow:0 0 16px rgba(240,165,0,.4);">🚀 OPEN VERACORE</button>
+    <button onclick="launchVeracore()" style="cursor:pointer;font-size:12px;padding:10px 22px;background:transparent;color:var(--teal);border:1.5px solid var(--teal);border-radius:4px;font-weight:700;font-family:var(--orb);letter-spacing:2px;box-shadow:0 0 18px rgba(0,201,255,.25),inset 0 0 18px rgba(0,201,255,.05);text-transform:uppercase;transition:all .3s;" onmouseover="this.style.background='rgba(0,201,255,.12)';this.style.boxShadow='0 0 28px rgba(0,201,255,.5),inset 0 0 18px rgba(0,201,255,.1)'" onmouseout="this.style.background='transparent';this.style.boxShadow='0 0 18px rgba(0,201,255,.25),inset 0 0 18px rgba(0,201,255,.05)'">◈ LAUNCH VERACORE</button>
     <div class="version">v4.7 · April 1st, 2026 · Live Demo</div>
   </div>
 </div>
