@@ -83,8 +83,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
 .bubble.cora::before{content:'CORA · VERACORE ✓';display:block;font-size:8px;letter-spacing:2px;color:var(--teal);font-family:var(--mono);margin-bottom:3px;}
 .bubble.system{background:transparent;border:none;color:var(--text3);font-size:9px;font-family:var(--mono);letter-spacing:1px;align-self:center;padding:2px 0;}
 
-/* VERACORE IFRAME */
-.veracore-frame{flex:1;border:none;width:100%;background:#000;}
+/* VERACORE SETUP PANEL */
+.veracore-setup{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:16px;}
+.setup-icon{font-size:32px;opacity:.4;}
+.setup-title{font-family:var(--orb);font-size:14px;letter-spacing:4px;color:var(--gold);}
+.setup-msg{font-family:var(--sans);font-size:13px;color:var(--text2);text-align:center;line-height:1.7;max-width:280px;}
+.setup-msg strong{color:var(--teal);}
+.setup-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px;}
+.step{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:1px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;}
+.setup-link{padding:10px 24px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:7px;font-family:var(--orb);font-size:10px;font-weight:700;letter-spacing:2px;cursor:pointer;text-decoration:none;margin-top:8px;}
 
 /* BOTTOM BAR */
 .bottombar{padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
@@ -183,7 +190,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
       <div class="live-dot gold"></div>
       <div class="panel-label gold">VERACORE · Live Verification Engine</div>
     </div>
-    <iframe class="veracore-frame" id="veracore-frame" src="about:blank"></iframe>
+    <div class="veracore-setup">
+      <div class="setup-icon">⚙</div>
+      <div class="setup-title">VERACORE LIVE</div>
+      <div class="setup-msg">Open <strong>veracore.onrender.com</strong> in a separate Chrome window and snap it to the right half of your screen.</div>
+      <div class="setup-steps">
+        <div class="step">1. Open veracore.onrender.com</div>
+        <div class="step">2. Log in</div>
+        <div class="step">3. Snap that window to the RIGHT half</div>
+        <div class="step">4. Snap THIS window to the LEFT half</div>
+        <div class="step">5. Press Start Listening below</div>
+      </div>
+      <a class="setup-link" href="https://veracore.onrender.com" target="_blank">Open Veracore ↗</a>
+    </div>
   </div>
 
 </div>
@@ -213,7 +232,7 @@ function initPresenter(){
   localStorage.setItem('pv_groq',cfg.groq);
   document.getElementById('config-overlay').style.display='none';
   document.getElementById('main-btn').disabled=false;
-  document.getElementById('veracore-frame').src=cfg.url;
+  
   setOrbState('idle');
   sysMsg('Cora is ready. Press Start Listening.');
 }
@@ -228,7 +247,7 @@ window.addEventListener('load',()=>{
     cfg={url:u||'https://veracore.onrender.com',openai:o,groq:g};
     document.getElementById('config-overlay').style.display='none';
     document.getElementById('main-btn').disabled=false;
-    document.getElementById('veracore-frame').src=cfg.url;
+    
     setOrbState('idle');
     sysMsg('Ready.');
   }
