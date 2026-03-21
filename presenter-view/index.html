@@ -301,7 +301,7 @@ function setOrbState(state){
 }
 
 // STATE
-let running=false,isSpeaking=false;
+let running=false,isSpeaking=false,isProcessing=false;
 let mediaRecorder=null,micStream=null,audioChunks=[];
 let cntAnswered=0,cntHeard=0,cntFiltered=0;
 let audioCtx=null,currentSource=null;
@@ -348,6 +348,10 @@ function shouldRespond(text){
 
 // MAIN HANDLER — Pure Veracore
 async function handleInput(text){
+  // TRIGGER LOCK — prevent double-fire
+  if(isProcessing)return;
+  isProcessing=true;
+
   cntHeard++;document.getElementById('s-heard').textContent=cntHeard;
   addBubble('human',text);
   setOrbState('thinking');
@@ -357,18 +361,39 @@ async function handleInput(text){
   window.open('https://veracore.onrender.com?q=' + encodedQ, 'veracore-live');
 
   let elapsed=0;
+  let longWaitFired=false;
   const timerEl=document.getElementById('timer-bar');
   timerEl.classList.add('show');
   timerEl.textContent='⚙ Veracore verifying... 0s';
-  const timerInt=setInterval(()=>{elapsed++;timerEl.textContent=`⚙ Veracore verifying... ${elapsed}s`;},1000);
+  const timerInt=setInterval(()=>{
+    elapsed++;
+    timerEl.textContent=`⚙ Veracore verifying... ${elapsed}s`;
+    // 8-SECOND GUARD — tell audience it's still working
+    if(elapsed===8&&!longWaitFired){
+      longWaitFired=true;
+      speak("Alright — this one's taking a little longer than usual. Let me finish checking it properly.");
+    }
+  },1000);
 
-  try{
+  // NETWORK RETRY — try once, retry once on failure
+  async function fetchVeracore(){
     const controller=new AbortController();
     setTimeout(()=>controller.abort(),60000);
-    const res=await fetch(cfg.url+'/ask',{
+    return fetch(cfg.url+'/ask',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({question:text}),signal:controller.signal
     });
+  }
+
+  try{
+    let res;
+    try{
+      res=await fetchVeracore();
+    }catch(e){
+      // NETWORK FALLBACK — retry once
+      await speak("I'm not getting a clean signal right now — give me one second to reconnect.");
+      res=await fetchVeracore();
+    }
     clearInterval(timerInt);timerEl.classList.remove('show');
     if(!res.ok)throw new Error('Veracore '+res.status);
     const data=await res.json();
@@ -391,6 +416,7 @@ async function handleInput(text){
     addBubble('cora',f);await speak(f);
   }
 
+  isProcessing=false;
   setOrbState('listening');
   if(running)setTimeout(recordChunk,3000);
 }
@@ -406,10 +432,12 @@ async function toggleSession(){if(running)stopSession();else await startSession(
 async function startSession(){
   try{
     micStream=await navigator.mediaDevices.getUserMedia({audio:true});
-    running=true;pendingText='';
+    running=true;pendingText='';isProcessing=false;
     document.getElementById('main-btn').textContent='Stop Listening';
     document.getElementById('main-btn').classList.add('running');
     setOrbState('speaking');
+    // PREWARM — hidden warmup call so first question feels instant
+    fetch(cfg.url+'/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:'hello'})}).catch(()=>{});
     await speak("Hi, I'm Cora. Go ahead and ask me anything.");
     setOrbState('listening');
     recordChunk();
@@ -484,6 +512,14 @@ async function flushPending(){
   if(pendingTimer){clearTimeout(pendingTimer);pendingTimer=null;}
   const text=pendingText.trim();pendingText='';
   if(!text||!shouldRespond(text)){cntFiltered++;document.getElementById('s-filtered').textContent=cntFiltered;if(running&&!isSpeaking)setTimeout(recordChunk,200);return;}
+  // FAILSAFE — if text is too short or garbled, ask to repeat
+  const words=text.split(/\s+/).filter(w=>w.length>1);
+  if(words.length<3&&!/(what|who|why|how|when|where|is|are|can|does|do|did|will|was|were|has|have)/.test(text.toLowerCase())){
+    addBubble('cora',"I didn't catch that clearly — can you say that one more time?");
+    await speak("I didn't catch that clearly — can you say that one more time?");
+    if(running&&!isSpeaking)setTimeout(recordChunk,500);
+    return;
+  }
   await handleInput(text);
 }
 
