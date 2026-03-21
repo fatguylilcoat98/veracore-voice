@@ -350,6 +350,7 @@ function shouldRespond(text){
 async function handleInput(text){
   cntHeard++;document.getElementById('s-heard').textContent=cntHeard;
   addBubble('human',text);
+  window.open(cfg.url + '?q=' + encodeURIComponent(text), 'veracore-right');
   setOrbState('thinking');
 
   let elapsed=0;
