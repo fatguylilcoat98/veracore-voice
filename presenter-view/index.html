@@ -47,13 +47,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
 /* CORA PANEL */
 .cora-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px;overflow:hidden;}
 .orb-wrap{display:flex;flex-direction:column;align-items:center;position:relative;margin-bottom:10px;}
-.orb-halo{position:absolute;width:180px;height:180px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-54%);pointer-events:none;opacity:0;transition:opacity 1s;background:radial-gradient(circle,rgba(0,201,255,.08) 0%,transparent 70%);}
+.orb-halo{position:absolute;width:280px;height:280px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-54%);pointer-events:none;opacity:0;transition:opacity 1s;background:radial-gradient(circle,rgba(0,201,255,.08) 0%,transparent 70%);}
 .orb-wrap.listening .orb-halo{opacity:1;animation:halo 3s ease-in-out infinite;}
 .orb-wrap.thinking .orb-halo{opacity:1;background:radial-gradient(circle,rgba(240,165,0,.1) 0%,transparent 70%);animation:halo 1.5s ease-in-out infinite;}
 .orb-wrap.speaking .orb-halo{opacity:1;background:radial-gradient(circle,rgba(0,229,190,.12) 0%,transparent 70%);animation:halo-throb .7s ease-in-out infinite alternate;}
 @keyframes halo{0%,100%{transform:translate(-50%,-54%) scale(1);opacity:.5}50%{transform:translate(-50%,-54%) scale(1.06);opacity:1}}
 @keyframes halo-throb{from{transform:translate(-50%,-54%) scale(1)}to{transform:translate(-50%,-54%) scale(1.1)}}
-.gng-orb{position:relative;width:130px;height:130px;margin-bottom:6px;}
+.gng-orb{position:relative;width:220px;height:220px;margin-bottom:6px;}
 .orb-svg{position:absolute;inset:0;width:100%;height:100%;}
 .orb-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2;}
 #gng-logo{width:84px;height:84px;object-fit:contain;border-radius:50%;filter:drop-shadow(0 0 12px rgba(0,201,255,.7));transition:all .6s;}
