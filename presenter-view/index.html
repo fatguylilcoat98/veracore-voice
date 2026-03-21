@@ -137,13 +137,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
     <div class="brand">VERA<span>CORE</span> · 1MC PRESENTER</div>
     <div class="tagline">The Good Neighbor Guard · Sacramento, CA · Truth · Safety · We Got Your Back</div>
   </div>
-  <div class="version">April 1st, 2026 · Live Demo</div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button onclick="launchVeracore()" style="cursor:pointer;font-size:11px;padding:8px 18px;background:linear-gradient(135deg,#f0a500,#ffcc44);color:#06080d;border:none;border-radius:8px;font-weight:700;font-family:var(--orb);letter-spacing:2px;box-shadow:0 0 16px rgba(240,165,0,.4);">🚀 OPEN VERACORE</button>
+    <div class="version">April 1st, 2026 · Live Demo</div>
+  </div>
 </div>
 
 <div class="panels">
 
   <!-- LEFT: CORA -->
-  <div class="panel panel-left">
+  <div class="panel panel-left" style="flex:1;width:100%;">
     <div class="panel-header">
       <div class="live-dot teal" id="cora-dot"></div>
       <div class="panel-label teal">CORA · Autonomous Voice Layer</div>
@@ -184,26 +187,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100vh
     </div>
   </div>
 
-  <!-- RIGHT: VERACORE LAUNCH PANEL -->
-  <div class="panel panel-right">
-    <div class="panel-header">
-      <div class="live-dot gold" id="vc-dot"></div>
-      <div class="panel-label gold">VERACORE · Live Verification Engine</div>
-    </div>
-    <div class="veracore-setup" id="vc-setup" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:24px;text-align:center;">
-      <div class="setup-icon" style="font-size:48px;margin-bottom:16px;">⚙</div>
-      <div class="setup-title" style="font-family:var(--orb);font-size:14px;letter-spacing:3px;color:var(--gold);margin-bottom:12px;">VERACORE LIVE</div>
-      <div class="setup-msg" style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:20px;">Click below to open Veracore.<br>Log in, then snap it to the RIGHT half of your screen.<br>Snap THIS window to the LEFT half.</div>
-      <button onclick="launchVeracore()" style="cursor:pointer;font-size:15px;padding:14px 32px;background:linear-gradient(135deg,#f0a500,#ffcc44);color:#06080d;border:none;border-radius:12px;font-weight:700;font-family:var(--orb);letter-spacing:2px;box-shadow:0 0 24px rgba(240,165,0,.4);">🚀 OPEN VERACORE LIVE</button>
-      <div style="margin-top:24px;font-size:11px;color:var(--text3);font-family:var(--mono);line-height:2;text-align:left;">
-        1. Click the button above<br>
-        2. Log in to Veracore<br>
-        3. Snap that window to the RIGHT<br>
-        4. Snap THIS window to the LEFT<br>
-        5. Press Start Listening below
-      </div>
-    </div>
-  </div>
+
 
 </div>
 
