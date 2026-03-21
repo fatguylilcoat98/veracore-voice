@@ -340,9 +340,13 @@ async function handleInput(text){
   addBubble('human',text);
   setOrbState('thinking');
 
-  // ── FIRE VERACORE IN THE NAMED WINDOW ──
+  // ── FIRE VERACORE IN THE NAMED WINDOW IMMEDIATELY ──
+  // Fires at same moment Cora starts — they race together
   const encodedQ = encodeURIComponent(text);
   window.open('https://veracore.onrender.com?q=' + encodedQ, 'veracore-live');
+
+  // Small yield to let browser open/update Veracore window before heavy fetch
+  await new Promise(r => setTimeout(r, 50));
 
   let elapsed=0;
   let longWaitFired=false;
@@ -389,9 +393,10 @@ async function handleInput(text){
       addBubble('cora',h);await speak(h);
     }else{
       if(confidence>=0.75)goldBurst();
-      // PURE VERACORE — word for word, nothing added
-      addBubble('cora',answer);
+      // PURE VERACORE — text and voice together
       cntAnswered++;document.getElementById('s-answered').textContent=cntAnswered;
+      // Add bubble and speak at exact same moment
+      addBubble('cora',answer);
       await speak(answer);
     }
   }catch(err){
