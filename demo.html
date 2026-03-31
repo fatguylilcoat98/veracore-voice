@@ -195,36 +195,34 @@ function speak(text) {
   speechSynthesis.speak(u);
 }
 
-// ══ FIRE — both systems simultaneously ══
+// ══ FIRE — single pipeline, no duplicate API call ══
+// Sends question to Veracore iframe via postMessage. Veracore runs
+// its pipeline (one API call), displays results visually, then sends
+// the answer back via postMessage. Cora picks it up and speaks it.
+// No separate fetch — one pipeline run, both sides update together.
+
 function fire(q) {
   messages.push({ role: "user", text: q });
   renderTranscript();
 
-  // 1) postMessage into Veracore iframe — fires the real pipeline
+  // Send to Veracore iframe — it runs the pipeline and posts back
   const frame = document.getElementById("vc-frame");
   if (frame && frame.contentWindow) {
     frame.contentWindow.postMessage({ type: "veracore_ask", question: q }, VC);
   }
-
-  // 2) API call — Cora gets the answer to speak
-  fetch(VC + "/ask", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: q })
-  })
-  .then(r => r.json())
-  .then(data => {
-    const answer = data.answer || "Verification completed.";
-    messages.push({ role: "cora", text: answer });
-    renderTranscript();
-    speak(answer);
-  })
-  .catch(() => {
-    messages.push({ role: "cora", text: "I'm having trouble reaching Veracore right now." });
-    setPhase("idle");
-    renderTranscript();
-  });
 }
+
+// Listen for Veracore's result coming back from the iframe
+window.addEventListener("message", function(event) {
+  // Only accept messages from Veracore
+  if (!event.data || event.data.type !== "veracore_result") return;
+  if (event.origin !== VC) return;
+
+  const answer = event.data.answer || "Verification completed.";
+  messages.push({ role: "cora", text: answer });
+  renderTranscript();
+  speak(answer);
+});
 
 // ── Actions ──
 function toggleListen() {
