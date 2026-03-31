@@ -230,7 +230,7 @@ function fire(question){
   // 1) Send to Veracore iframe via postMessage — runs the REAL pipeline visually
   const frame=document.getElementById("vc-frame");
   if(frame&&frame.contentWindow){
-    frame.contentWindow.postMessage({type:"veracore_ask",question:question},"*");
+    frame.contentWindow.postMessage({type:"veracore_ask",question:question},VC);
   }
 
   // 2) API call so Cora gets the answer to speak
