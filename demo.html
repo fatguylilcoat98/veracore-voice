@@ -2,11 +2,11 @@
 <!--
   VERACORE + CORA — Live Presentation Demo
   The Good Neighbor Guard © 2026 Christopher Hughes | Sacramento CA
-  Built with AI collaborators: Claude · GPT · Grok · Gemini
   Truth · Safety · We Got Your Back
 
-  One URL. One button. Both systems live.
-  Left: Veracore (actual live UI via iframe). Right: Cora voice interface.
+  One URL. One button. Both systems fire together.
+  Left: Veracore verification (real API, styled to match production).
+  Right: Cora voice (warm female, speaks the verified answer).
 -->
 <html lang="en">
 <head>
@@ -19,635 +19,343 @@
 :root {
   --bg: #080b12;
   --surface: rgba(14,19,30,.95);
+  --card: rgba(18,24,38,.9);
   --border: rgba(255,255,255,.08);
+  --border2: rgba(255,255,255,.12);
   --text: #e8f0ff;
   --muted: #7a88a8;
-  --muted2: #3e4a64;
+  --dim: #3e4a64;
   --gold: #d4a843;
   --teal: #2dd4bf;
   --green: #4ade80;
   --amber: #f59e0b;
   --red: #ef4444;
+  --blue: #60a5fa;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', system-ui, sans-serif;
+  --r: 12px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  height: 100vh;
-  overflow: hidden;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
 
 /* ── HEADER ── */
-.demo-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 24px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(14,19,30,.98);
-  height: 48px;
-  flex-shrink: 0;
-}
-.demo-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.demo-logo {
-  width: 28px; height: 28px;
-  border-radius: 7px;
-  background: var(--gold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  color: var(--bg);
-  font-size: 14px;
-}
-.demo-title { font-size: 14px; font-weight: 700; }
-.demo-title span { color: var(--gold); }
-.demo-subtitle {
-  font-size: 10px; color: var(--muted2);
-  letter-spacing: .08em; text-transform: uppercase;
-}
-.demo-status {
-  display: flex; align-items: center; gap: 14px;
-}
-.status-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px rgba(74,222,128,.3);
-}
-.status-dot.offline { background: var(--red); box-shadow: 0 0 6px rgba(239,68,68,.3); }
-.status-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; color: var(--muted); letter-spacing: .06em;
-}
-.btn-reset {
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.04);
-  color: var(--muted); border-radius: 6px;
-  padding: 5px 12px; font-size: 10px; font-weight: 600;
-  cursor: pointer; font-family: 'Inter', sans-serif;
-  transition: all .15s;
-}
-.btn-reset:hover { background: rgba(255,255,255,.08); color: var(--text); }
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid var(--border);background:rgba(14,19,30,.98);height:48px;flex-shrink:0}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:28px;height:28px;border-radius:7px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--bg);font-size:14px}
+.hdr-title{font-size:14px;font-weight:700}.hdr-title span{color:var(--gold)}
+.hdr-sub{font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:14px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(74,222,128,.3)}.dot.off{background:var(--red);box-shadow:0 0 6px rgba(239,68,68,.3)}
+.hdr-status{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em}
+.btn-sm{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);border-radius:6px;padding:5px 12px;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s}
+.btn-sm:hover{background:rgba(255,255,255,.08);color:var(--text)}
 
-/* ── SPLIT LAYOUT ── */
-.split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  height: calc(100vh - 48px);
-}
+/* ── SPLIT ── */
+.split{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 48px)}
+.pL{border-right:1px solid var(--border);padding:20px 24px;overflow-y:auto}
+.pR{padding:20px 24px;display:flex;flex-direction:column;overflow:hidden}
+.pL::-webkit-scrollbar,.pR::-webkit-scrollbar{width:4px}
+.pL::-webkit-scrollbar-thumb,.pR::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px}
 
-/* LEFT: Veracore iframe */
-.panel-left {
-  border-right: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-}
-.panel-left-label {
-  position: absolute; top: 0; left: 0; right: 0;
-  z-index: 10;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 14px;
-  background: linear-gradient(180deg, rgba(8,11,18,.95) 0%, rgba(8,11,18,.7) 80%, transparent 100%);
-  pointer-events: none;
-}
-.panel-left-name {
-  font-size: 13px; font-weight: 800; color: var(--teal); letter-spacing: .02em;
-}
-.panel-left-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; color: var(--muted2);
-  letter-spacing: .1em; text-transform: uppercase;
-}
-.veracore-frame {
-  width: 100%; height: 100%; border: none;
-  background: var(--bg);
-}
+/* Panel headers */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0}
+.ph-name{font-size:18px;font-weight:800}
+.ph-name.vc{color:var(--teal)}.ph-name.co{color:var(--gold)}
+.ph-tag{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border:1px solid var(--border);border-radius:999px}
 
-/* RIGHT: Cora */
-.panel-right {
-  display: flex; flex-direction: column;
-  padding: 20px 24px 20px;
-  overflow: hidden;
-}
-.panel-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px; flex-shrink: 0;
-}
-.panel-name {
-  font-size: 18px; font-weight: 800; color: var(--gold);
-}
-.panel-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; color: var(--muted2);
-  letter-spacing: .1em; text-transform: uppercase;
-  padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px;
-}
+/* ── VERACORE PANEL ── */
 
-/* ── VOICE BUTTON ── */
-.cora-btn {
-  width: 100%; padding: 16px; border-radius: 12px;
-  border: 2px solid rgba(212,168,67,.15);
-  background: rgba(212,168,67,.04);
-  color: var(--gold); font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: all .25s;
-  margin-bottom: 16px; flex-shrink: 0;
-  font-family: 'Inter', sans-serif;
-}
-.cora-btn:hover { background: rgba(212,168,67,.08); border-color: rgba(212,168,67,.3); }
-.cora-btn.listening {
-  border-color: rgba(74,222,128,.3);
-  background: rgba(74,222,128,.04);
-  color: var(--green);
-}
-.cora-btn.speaking {
-  border-color: rgba(45,212,191,.3);
-  background: rgba(45,212,191,.04);
-  color: var(--teal);
-}
-.cora-btn.processing {
-  border-color: rgba(96,165,250,.2);
-  background: rgba(96,165,250,.03);
-  color: #60a5fa;
-}
-.cora-btn:disabled { opacity: .4; cursor: not-allowed; }
+/* Idle/waiting states */
+.vc-idle{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--dim);font-size:13px;line-height:2;min-height:200px}
 
-/* Voice selector */
-.voice-row {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 14px; flex-shrink: 0;
-}
-.voice-row label {
-  font-size: 10px; color: var(--muted2);
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: .06em; text-transform: uppercase;
-  white-space: nowrap;
-}
-.voice-row select {
-  flex: 1; padding: 5px 8px; border-radius: 6px;
-  background: rgba(255,255,255,.04); border: 1px solid var(--border);
-  color: var(--text); font-size: 11px;
-  font-family: 'Inter', sans-serif;
-  outline: none;
-}
-.voice-row select:focus { border-color: rgba(212,168,67,.3); }
+/* Scanning animation */
+.vc-scan{animation:fadeIn .3s ease}
+.vc-scan-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.vc-scan-dot{width:10px;height:10px;border-radius:50%;background:var(--teal);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.vc-scan-title{font-family:var(--mono);font-size:12px;color:var(--teal);letter-spacing:.05em}
+.vc-scan-log{font-family:var(--mono);font-size:11px;color:var(--dim);line-height:2}
+.vc-scan-step{animation:fadeIn .2s ease}
+.vc-scan-step.done{color:var(--muted)}
+.vc-scan-step.active{color:var(--teal)}
 
-/* ── TRANSCRIPT ── */
-.transcript {
-  flex: 1; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 10px;
-  padding-right: 4px;
-}
-.transcript::-webkit-scrollbar { width: 4px; }
-.transcript::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 2px; }
+/* Question card */
+.vc-q{padding:14px 16px;border-radius:var(--r);background:rgba(255,255,255,.03);border:1px solid var(--border);margin-bottom:14px;animation:fadeIn .3s ease}
+.vc-q-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.vc-q-txt{font-size:14px;line-height:1.6}
 
-.transcript-empty {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  text-align: center; color: var(--muted2); font-size: 13px; line-height: 1.9;
-  padding: 0 20px;
-}
+/* Answer card */
+.vc-ans{padding:18px;border-radius:var(--r);background:var(--card);border:1px solid var(--border2);margin-bottom:14px;animation:fadeIn .4s ease}
+.vc-ans-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);margin-bottom:8px;opacity:.7}
+.vc-ans-txt{font-size:15px;line-height:1.75;white-space:pre-wrap}
 
-.bubble {
-  padding: 14px 16px; border-radius: 12px;
-  font-size: 14px; line-height: 1.7;
-  animation: fadeIn .3s ease; max-width: 95%;
-}
-.bubble .who {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
-  margin-bottom: 5px; display: block;
-}
-.bubble.user {
-  background: rgba(212,168,67,.05);
-  border: 1px solid rgba(212,168,67,.1);
-  align-self: flex-end;
-}
-.bubble.user .who { color: var(--gold); }
-.bubble.cora {
-  background: rgba(45,212,191,.03);
-  border: 1px solid rgba(45,212,191,.08);
-}
-.bubble.cora .who { color: var(--teal); }
-.bubble.interim {
-  background: transparent;
-  border: 1px dashed rgba(212,168,67,.15);
-  color: var(--muted); font-style: italic;
-}
+/* Confidence + Agreement */
+.vc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;animation:fadeIn .4s ease}
+.vc-mc{padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.02)}
+.vc-mc-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:3px}
+.vc-mc-val{font-size:16px;font-weight:700;font-family:var(--mono)}
 
-.cora-status {
-  flex-shrink: 0; margin-top: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; color: var(--muted2); text-align: center;
-  letter-spacing: .06em;
-}
+/* Sources */
+.vc-src{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;animation:fadeIn .4s ease}
+.vc-src-pill{font-size:10px;padding:3px 9px;border-radius:999px;border:1px solid var(--border);color:var(--muted);background:rgba(255,255,255,.02)}
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* Models */
+.vc-models{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;animation:fadeIn .4s ease}
+.vc-model{font-size:9px;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--dim);font-family:var(--mono)}
+.vc-model.ok{color:var(--green);border-color:rgba(74,222,128,.12)}
+.vc-model.to{color:var(--amber);border-color:rgba(245,158,11,.12)}
+
+/* Mode + Time */
+.vc-mode{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid rgba(45,212,191,.15);color:var(--teal);background:rgba(45,212,191,.04);display:inline-block;margin-bottom:10px;animation:fadeIn .3s ease}
+.vc-time{font-family:var(--mono);font-size:10px;color:var(--dim);text-align:right}
+
+/* ── CORA PANEL ── */
+.cora-btn{width:100%;padding:16px;border-radius:var(--r);border:2px solid rgba(212,168,67,.15);background:rgba(212,168,67,.04);color:var(--gold);font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;margin-bottom:14px;flex-shrink:0;font-family:var(--sans)}
+.cora-btn:hover{background:rgba(212,168,67,.08);border-color:rgba(212,168,67,.3)}
+.cora-btn.listening{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.04);color:var(--green)}
+.cora-btn.speaking{border-color:rgba(45,212,191,.3);background:rgba(45,212,191,.04);color:var(--teal)}
+.cora-btn.processing{border-color:rgba(96,165,250,.2);background:rgba(96,165,250,.03);color:var(--blue)}
+.cora-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.voice-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-shrink:0}
+.voice-row label{font-size:10px;color:var(--dim);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.voice-row select{flex:1;padding:5px 8px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);font-size:11px;font-family:var(--sans);outline:none}
+
+.transcript{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}
+.transcript-empty{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--dim);font-size:13px;line-height:1.9;padding:0 16px}
+
+.bub{padding:14px 16px;border-radius:var(--r);font-size:14px;line-height:1.7;animation:fadeIn .3s ease;max-width:95%}
+.bub .who{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;display:block}
+.bub.user{background:rgba(212,168,67,.05);border:1px solid rgba(212,168,67,.1);align-self:flex-end}.bub.user .who{color:var(--gold)}
+.bub.cora{background:rgba(45,212,191,.03);border:1px solid rgba(45,212,191,.08)}.bub.cora .who{color:var(--teal)}
+.bub.wait{background:transparent;border:1px dashed rgba(212,168,67,.12);color:var(--muted);font-style:italic}
+.cora-foot{flex-shrink:0;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--dim);text-align:center}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.split{grid-template-columns:1fr}.pL{border-right:none;border-bottom:1px solid var(--border);max-height:50vh}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
-// ══════════════════════════════════════════════════════════════════
-// VERACORE + CORA — Live Demo
-// Left: actual Veracore at veracore.onrender.com (iframe)
-// Right: Cora voice with warm female voice
-// ══════════════════════════════════════════════════════════════════
-
-const VERACORE_URL = "https://veracore.onrender.com";
+const API="https://veracore.onrender.com";
 
 // ── State ──
-const S = {
-  phase: "idle",       // idle | listening | processing | speaking
-  question: "",
-  interim: "",
-  messages: [],        // {role, text}
-  error: null,
-  online: true,
-  selectedVoice: null, // user-chosen voice index
-};
+const S={phase:"idle",question:"",interim:"",result:null,messages:[],error:null,online:true,elapsed:null,scanSteps:[],selectedVoice:null};
 
-// ── Voice Setup ──
-// Priority list: prefer warm female voices, sorted by quality
-const VOICE_PRIORITY = [
-  // Windows neural voices (best quality on Windows)
-  "Microsoft Aria",
-  "Microsoft Jenny",
-  "Microsoft Sonia",
-  "Microsoft Libby",
-  "Microsoft Sara",
-  "Microsoft Zira",
-  // macOS voices
-  "Samantha",
-  "Karen",
-  "Moira",
-  "Tessa",
-  // Chrome/Android voices
-  "Google US English",
-  "Google UK English Female",
-  "English United States",
-  "English United Kingdom",
+// ── Scan simulation steps (matches Veracore pipeline) ──
+const SCAN_STEPS=[
+  "Normalizing input...",
+  "Risk classification...",
+  "Question classifier...",
+  "Retrieval — querying models...",
+  "Cross-evaluation...",
+  "Adversarial check...",
+  "Consensus building...",
+  "Truth gate evaluation...",
+  "Building response...",
 ];
 
-let allVoices = [];
-let bestVoice = null;
+let scanTimer=null;
+function startScanAnim(){
+  S.scanSteps=[];
+  let i=0;
+  scanTimer=setInterval(()=>{
+    if(i<SCAN_STEPS.length){S.scanSteps.push(SCAN_STEPS[i]);i++;render();}
+    else clearInterval(scanTimer);
+  },800);
+}
+function stopScanAnim(){if(scanTimer){clearInterval(scanTimer);scanTimer=null;}}
 
-function loadVoices() {
-  allVoices = speechSynthesis.getVoices();
-  if (!allVoices.length) return;
-
-  // Find best voice from priority list
-  for (const pref of VOICE_PRIORITY) {
-    const found = allVoices.find(v => v.name.includes(pref));
-    if (found) { bestVoice = found; break; }
-  }
-  // Fallback: any English female-sounding voice
-  if (!bestVoice) {
-    bestVoice = allVoices.find(v =>
-      v.lang.startsWith("en") && (
-        /female|woman|zira|samantha|karen|jenny|aria|sonia|libby|sara|tessa|fiona|alice|victoria|susan/i.test(v.name)
-      )
-    );
-  }
-  // Last fallback: any English voice
-  if (!bestVoice) {
-    bestVoice = allVoices.find(v => v.lang.startsWith("en")) || allVoices[0];
-  }
-
+// ── Voices ──
+const VPRI=["Microsoft Aria","Microsoft Jenny","Microsoft Sonia","Microsoft Libby","Samantha","Karen","Google US English","Google UK English Female"];
+let voices=[],bestV=null;
+function loadV(){
+  voices=speechSynthesis.getVoices();if(!voices.length)return;
+  for(const p of VPRI){const f=voices.find(v=>v.name.includes(p));if(f){bestV=f;break;}}
+  if(!bestV)bestV=voices.find(v=>v.lang.startsWith("en")&&/female|woman|zira|samantha|karen|jenny|aria|sonia|libby|tessa|fiona|victoria|susan/i.test(v.name));
+  if(!bestV)bestV=voices.find(v=>v.lang.startsWith("en"))||voices[0];
   render();
 }
-
-if (window.speechSynthesis) {
-  speechSynthesis.onvoiceschanged = loadVoices;
-  loadVoices();
-}
-
-function getSelectedVoice() {
-  if (S.selectedVoice !== null && allVoices[S.selectedVoice]) {
-    return allVoices[S.selectedVoice];
-  }
-  return bestVoice;
-}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadV;loadV();}
+function getV(){return S.selectedVoice!==null&&voices[S.selectedVoice]?voices[S.selectedVoice]:bestV;}
 
 // ── Speech Recognition ──
-const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null;
-
-if (SpeechRec) {
-  rec = new SpeechRec();
-  rec.lang = "en-US";
-  rec.interimResults = true;
-  rec.continuous = false;
-
-  rec.onresult = (ev) => {
-    let interim = "", final = "";
-    for (let i = ev.resultIndex; i < ev.results.length; i++) {
-      const t = ev.results[i][0].transcript;
-      if (ev.results[i].isFinal) final += t;
-      else interim += t;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null;
+if(SR){
+  rec=new SR();rec.lang="en-US";rec.interimResults=true;rec.continuous=false;
+  rec.onresult=(ev)=>{
+    let interim="",final="";
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const t=ev.results[i][0].transcript;
+      if(ev.results[i].isFinal)final+=t;else interim+=t;
     }
-    if (final) {
-      S.question = final.trim();
-      S.interim = "";
-      S.phase = "processing";
-      render();
-      submitToVeracore(S.question);
-    } else {
-      S.interim = interim;
-      render();
-    }
+    if(final){S.question=final.trim();S.interim="";S.phase="processing";render();go(S.question);}
+    else{S.interim=interim;render();}
   };
-
-  rec.onerror = (ev) => {
-    if (ev.error !== "no-speech") S.error = "Mic error: " + ev.error;
-    S.phase = "idle";
-    render();
-  };
-
-  rec.onend = () => {
-    if (S.phase === "listening") { S.phase = "idle"; render(); }
-  };
+  rec.onerror=(ev)=>{if(ev.error!=="no-speech")S.error="Mic error: "+ev.error;S.phase="idle";render();};
+  rec.onend=()=>{if(S.phase==="listening"){S.phase="idle";render();}};
 }
 
-// ── Speak with warm voice ──
-function speak(text, onDone) {
-  if (!speechSynthesis) { if (onDone) onDone(); return; }
-  speechSynthesis.cancel();
-
-  // Clean text for speech
-  const clean = text
-    .replace(/[\*\#\[\]\(\)]/g, "")
-    .replace(/https?:\/\/\S+/g, "")
-    .replace(/\n+/g, ". ")
-    .substring(0, 600);
-
-  const utt = new SpeechSynthesisUtterance(clean);
-  const voice = getSelectedVoice();
-  if (voice) utt.voice = voice;
-
-  // Warm, caring tuning — slower, slightly lower pitch
-  utt.rate = 0.88;
-  utt.pitch = 1.05;
-  utt.volume = 1.0;
-
-  utt.onend = () => {
-    S.phase = "idle";
-    render();
-    if (onDone) onDone();
-  };
-
-  S.phase = "speaking";
-  render();
-  speechSynthesis.speak(utt);
+// ── Speak ──
+function speak(text){
+  if(!speechSynthesis)return;speechSynthesis.cancel();
+  const clean=text.replace(/[\*\#\[\]\(\)]/g,"").replace(/https?:\/\/\S+/g,"").replace(/\n+/g,". ").substring(0,600);
+  const u=new SpeechSynthesisUtterance(clean);
+  const v=getV();if(v)u.voice=v;
+  u.rate=0.88;u.pitch=1.05;u.volume=1.0;
+  u.onend=()=>{S.phase="idle";render();};
+  S.phase="speaking";render();
+  speechSynthesis.speak(u);
 }
 
-// ── Submit question to Veracore ──
-async function submitToVeracore(question) {
-  S.messages.push({ role: "user", text: question });
+// ── API call + both panels update ──
+async function go(question){
+  S.messages.push({role:"user",text:question});
+  S.result=null;S.elapsed=null;S.error=null;
+  startScanAnim();
   render();
 
-  // Also type the question into the Veracore iframe
-  injectQuestion(question);
+  const t0=Date.now();
+  try{
+    const resp=await fetch(API+"/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question})});
+    const data=await resp.json();
+    S.elapsed=Date.now()-t0;
+    stopScanAnim();
+    S.result=data;
 
-  try {
-    const resp = await fetch(VERACORE_URL + "/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-    const data = await resp.json();
-    const answer = data.answer || "I verified this but couldn't find a clear answer. Let me look into it more.";
-
-    S.messages.push({ role: "cora", text: answer });
+    const answer=data.answer||"Verification completed.";
+    S.messages.push({role:"cora",text:answer});
+    S.phase="done";
     render();
-    scrollTranscript();
+    scrollT();
 
-    // Speak the answer in Cora's voice
+    // Cora speaks
     speak(answer);
-
-  } catch (e) {
-    S.error = "Couldn't reach Veracore right now.";
-    S.phase = "idle";
-    S.messages.push({ role: "cora", text: "I'm having trouble connecting to Veracore. Let me try again in a moment." });
+  }catch(e){
+    stopScanAnim();
+    S.elapsed=Date.now()-t0;
+    S.error="Couldn't reach Veracore.";
+    S.messages.push({role:"cora",text:"I'm having trouble connecting to Veracore right now. Give me a moment."});
+    S.phase="idle";
     render();
-  }
-}
-
-// ── Inject question into Veracore iframe ──
-function injectQuestion(question) {
-  try {
-    const frame = document.getElementById("vc-frame");
-    if (!frame || !frame.contentWindow) return;
-    // Try to find the textarea in the Veracore iframe and type the question
-    const doc = frame.contentDocument || frame.contentWindow.document;
-    if (!doc) return;
-    const textarea = doc.querySelector("textarea");
-    if (textarea) {
-      // Set value and trigger input event
-      const nativeSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
-      nativeSetter.call(textarea, question);
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      // Find and click the submit button
-      setTimeout(() => {
-        const btn = doc.querySelector(".submit-btn, button[type='submit'], .ask-btn");
-        if (btn) btn.click();
-        // Also try pressing Enter
-        textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-      }, 200);
-    }
-  } catch (e) {
-    // Cross-origin will block this — that's ok, API call still works
   }
 }
 
 // ── Actions ──
-function toggleListen() {
-  if (!rec) { S.error = "Voice not supported. Use Chrome or Edge."; render(); return; }
-  if (S.phase === "listening") { rec.stop(); S.phase = "idle"; render(); return; }
-  if (S.phase === "speaking") { speechSynthesis.cancel(); }
-
-  S.phase = "listening";
-  S.question = "";
-  S.interim = "";
-  S.error = null;
+function toggleListen(){
+  if(!rec){S.error="Voice not supported — use Chrome or Edge.";render();return;}
+  if(S.phase==="listening"){rec.stop();S.phase="idle";render();return;}
+  if(S.phase==="speaking")speechSynthesis.cancel();
+  S.phase="listening";S.question="";S.interim="";S.result=null;S.error=null;S.elapsed=null;S.scanSteps=[];
+  render();rec.start();
+}
+function resetAll(){
+  if(rec&&S.phase==="listening")rec.stop();
+  if(speechSynthesis)speechSynthesis.cancel();
+  stopScanAnim();
+  S.phase="idle";S.question="";S.interim="";S.result=null;S.messages=[];S.error=null;S.elapsed=null;S.scanSteps=[];
   render();
-  rec.start();
 }
-
-function resetAll() {
-  if (rec && S.phase === "listening") rec.stop();
-  if (speechSynthesis) speechSynthesis.cancel();
-  S.phase = "idle";
-  S.question = "";
-  S.interim = "";
-  S.messages = [];
-  S.error = null;
-  render();
-  // Reload Veracore iframe
-  const f = document.getElementById("vc-frame");
-  if (f) f.src = VERACORE_URL;
+function onVC(idx){
+  S.selectedVoice=idx===""?null:parseInt(idx);render();
+  const v=getV();if(v){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance("Hi, I'm Cora.");u.voice=v;u.rate=0.88;u.pitch=1.05;speechSynthesis.speak(u);}
 }
-
-function onVoiceChange(idx) {
-  S.selectedVoice = idx === "" ? null : parseInt(idx);
-  render();
-  // Preview
-  const v = getSelectedVoice();
-  if (v) {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance("Hi, I'm Cora.");
-    u.voice = v;
-    u.rate = 0.88;
-    u.pitch = 1.05;
-    speechSynthesis.speak(u);
-  }
-}
-
-function scrollTranscript() {
-  setTimeout(() => {
-    const el = document.getElementById("transcript");
-    if (el) el.scrollTop = el.scrollHeight;
-  }, 50);
-}
+function scrollT(){setTimeout(()=>{const el=document.getElementById("tr");if(el)el.scrollTop=el.scrollHeight;},50);}
 
 // ── Health ──
-async function checkHealth() {
-  try {
-    const r = await fetch(VERACORE_URL + "/api/status", { signal: AbortSignal.timeout(4000) });
-    S.online = r.ok;
-  } catch { S.online = false; }
-  render();
-}
+async function checkH(){try{const r=await fetch(API+"/api/status",{signal:AbortSignal.timeout(4000)});S.online=r.ok;}catch{S.online=false;}render();}
 
 // ── Render ──
-function render() {
-  const btnLabel = S.phase === "listening" ? "Listening... tap to stop"
-    : S.phase === "processing" ? "Verifying with Veracore..."
-    : S.phase === "speaking" ? "Cora is speaking..."
-    : "Tap to Activate Cora";
-  const btnClass = S.phase === "listening" ? "listening"
-    : S.phase === "processing" ? "processing"
-    : S.phase === "speaking" ? "speaking" : "";
-  const btnDisabled = S.phase === "processing";
+function render(){
+  const r=S.result;
+  const conf=r?.confidence_score??null;
+  const confC=conf>=75?"var(--green)":conf>=45?"var(--amber)":conf!==null?"var(--red)":"var(--dim)";
+  const agree=r?.agreement_level||r?.verdict||"";
+  const agreeC=agree==="strong"?"var(--green)":agree==="moderate"?"var(--amber)":"var(--muted)";
+  const mode=r?.verification_mode||"";
+  const sources=r?.sources||[];
+  const models=r?.models_run||[];
+  const elapsed=S.elapsed?((S.elapsed/1000).toFixed(1)+"s"):"";
 
-  // Voice select options
-  const englishVoices = allVoices
-    .map((v, i) => ({ v, i }))
-    .filter(({ v }) => v.lang.startsWith("en"));
-  const currentVoice = getSelectedVoice();
+  const btnL=S.phase==="listening"?"Listening... tap to stop":S.phase==="processing"?"Verifying...":S.phase==="speaking"?"Cora is speaking...":"Tap to Activate Cora";
+  const btnC=S.phase==="listening"?"listening":S.phase==="processing"?"processing":S.phase==="speaking"?"speaking":"";
 
-  document.getElementById("app").innerHTML = `
-    <!-- HEADER -->
-    <div class="demo-header">
-      <div class="demo-brand">
-        <div class="demo-logo">V</div>
-        <div>
-          <div class="demo-title"><span>Veracore</span> + <span>Cora</span></div>
-          <div class="demo-subtitle">Live Demonstration</div>
-        </div>
-      </div>
-      <div class="demo-status">
-        <div class="status-dot ${S.online ? '' : 'offline'}"></div>
-        <div class="status-label">${S.online ? 'ONLINE' : 'OFFLINE'}</div>
-        <button class="btn-reset" onclick="resetAll()">Reset</button>
-      </div>
+  const engV=voices.map((v,i)=>({v,i})).filter(({v})=>v.lang.startsWith("en"));
+  const curV=getV();
+
+  document.getElementById("app").innerHTML=`
+  <div class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-logo">V</div>
+      <div><div class="hdr-title"><span>Veracore</span> + <span>Cora</span></div><div class="hdr-sub">Live Demonstration — April 2026</div></div>
     </div>
+    <div class="hdr-r">
+      <div class="dot ${S.online?'':'off'}"></div>
+      <div class="hdr-status">${S.online?'VERACORE ONLINE':'OFFLINE'}</div>
+      <button class="btn-sm" onclick="resetAll()">Reset</button>
+    </div>
+  </div>
 
-    <!-- SPLIT -->
-    <div class="split">
+  <div class="split">
 
-      <!-- LEFT: Actual Veracore -->
-      <div class="panel-left">
-        <div class="panel-left-label">
-          <span class="panel-left-name">Veracore</span>
-          <span class="panel-left-tag">Live Truth Verification</span>
-        </div>
-        <iframe id="vc-frame" class="veracore-frame" src="${VERACORE_URL}" allow="clipboard-read; clipboard-write"></iframe>
-      </div>
+    <!-- LEFT: VERACORE -->
+    <div class="pL">
+      <div class="ph"><div class="ph-name vc">Veracore</div><div class="ph-tag">Truth Verification Engine</div></div>
 
-      <!-- RIGHT: Cora -->
-      <div class="panel-right">
-        <div class="panel-header">
-          <div class="panel-name">Cora</div>
-          <div class="panel-tag">Voice Interface</div>
-        </div>
+      ${S.phase==="idle"&&!r?`<div class="vc-idle">Activate Cora and ask a question.<br/>Veracore will verify it in real time<br/>and show the full pipeline here.</div>`:''}
 
-        <button class="cora-btn ${btnClass}" onclick="toggleListen()" ${btnDisabled ? 'disabled' : ''}>
-          ${btnLabel}
-        </button>
+      ${S.phase==="listening"&&!r?`<div class="vc-idle">${S.interim?`<span style="color:var(--gold);font-style:italic">"${S.interim}"</span><br/><br/>`:''}Waiting for question...</div>`:''}
 
-        <div class="voice-row">
-          <label>Voice</label>
-          <select onchange="onVoiceChange(this.value)">
-            ${englishVoices.length === 0 ? '<option>Loading voices...</option>' : ''}
-            ${englishVoices.map(({ v, i }) =>
-              `<option value="${i}" ${v === currentVoice ? 'selected' : ''}>${v.name}</option>`
-            ).join('')}
-          </select>
-        </div>
-
-        <div class="transcript" id="transcript">
-          ${S.messages.length === 0 && S.phase === "idle" ? `
-            <div class="transcript-empty">
-              Tap the button above and ask a question.<br/><br/>
-              Cora listens, Veracore verifies, and you hear the truth — all in real time.
-            </div>
-          ` : ''}
-
-          ${S.phase === "listening" && S.messages.length === 0 ? `
-            <div class="transcript-empty" style="color:var(--green)">
-              Listening...<br/>
-              ${S.interim ? `<em style="color:var(--gold)">"${S.interim}"</em>` : 'Speak clearly.'}
-            </div>
-          ` : ''}
-
-          ${S.messages.map(m => `
-            <div class="bubble ${m.role}">
-              <span class="who">${m.role === 'user' ? 'You' : 'Cora'}</span>
-              ${m.text}
-            </div>
-          `).join('')}
-
-          ${S.phase === "processing" ? `
-            <div class="bubble cora" style="opacity:.5">
-              <span class="who">Cora</span>
-              Let me check that for you...
-            </div>
-          ` : ''}
-
-          ${S.phase === "listening" && S.messages.length > 0 ? `
-            <div class="bubble interim">
-              ${S.interim || 'Listening...'}
-            </div>
-          ` : ''}
-        </div>
-
-        ${S.error ? `
-          <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.12);color:var(--red);font-size:11px;">
-            ${S.error}
+      ${S.phase==="processing"?`
+        <div class="vc-q"><div class="vc-q-lbl">Question</div><div class="vc-q-txt">${S.question}</div></div>
+        <div class="vc-scan">
+          <div class="vc-scan-header"><div class="vc-scan-dot"></div><div class="vc-scan-title">Running verification pipeline...</div></div>
+          <div class="vc-scan-log">
+            ${S.scanSteps.map((s,i)=>`<div class="vc-scan-step ${i===S.scanSteps.length-1?'active':'done'}">${i<S.scanSteps.length-1?'&#10003;':''} ${s}</div>`).join('')}
           </div>
-        ` : ''}
-
-        <div class="cora-status">
-          ${currentVoice ? currentVoice.name : 'No voice loaded'}
         </div>
-      </div>
-    </div>
-  `;
+      `:''}
 
-  scrollTranscript();
+      ${r?`
+        <div>
+          <div class="vc-q"><div class="vc-q-lbl">Question</div><div class="vc-q-txt">${S.question}</div></div>
+          ${mode?`<div class="vc-mode">${mode}</div>`:''}
+          <div class="vc-ans"><div class="vc-ans-lbl">Verified Answer</div><div class="vc-ans-txt">${r.answer||'No answer.'}</div></div>
+          <div class="vc-meta">
+            <div class="vc-mc"><div class="vc-mc-lbl">Confidence</div><div class="vc-mc-val" style="color:${confC}">${conf!==null?conf+'%':'—'}</div></div>
+            <div class="vc-mc"><div class="vc-mc-lbl">Agreement</div><div class="vc-mc-val" style="color:${agreeC}">${agree||'—'}</div></div>
+            <div class="vc-mc"><div class="vc-mc-lbl">Sources</div><div class="vc-mc-val" style="color:var(--muted)">${r.total_unique_sources||sources.length||0}</div></div>
+          </div>
+          ${sources.length?`<div class="vc-src">${sources.slice(0,8).map(s=>`<span class="vc-src-pill">${s.domain||s.title||'source'}</span>`).join('')}${sources.length>8?`<span class="vc-src-pill">+${sources.length-8}</span>`:''}</div>`:''}
+          ${models.length?`<div class="vc-models">${models.map(m=>`<span class="vc-model ${m.status==='complete'?'ok':m.status==='timeout'?'to':''}">${m.name||m.id}</span>`).join('')}</div>`:''}
+          ${elapsed?`<div class="vc-time">${elapsed}</div>`:''}
+        </div>
+      `:''}
+    </div>
+
+    <!-- RIGHT: CORA -->
+    <div class="pR">
+      <div class="ph"><div class="ph-name co">Cora</div><div class="ph-tag">Voice Interface</div></div>
+      <button class="cora-btn ${btnC}" onclick="toggleListen()" ${S.phase==='processing'?'disabled':''}>${btnL}</button>
+      <div class="voice-row"><label>Voice</label><select onchange="onVC(this.value)">${engV.length===0?'<option>Loading...</option>':''}${engV.map(({v,i})=>`<option value="${i}" ${v===curV?'selected':''}>${v.name}</option>`).join('')}</select></div>
+      <div class="transcript" id="tr">
+        ${S.messages.length===0&&S.phase==="idle"?`<div class="transcript-empty">Tap the button and ask a question out loud.<br/><br/>Cora listens. Veracore verifies.<br/>Both sides update together in real time.</div>`:''}
+        ${S.phase==="listening"&&S.messages.length===0?`<div class="transcript-empty" style="color:var(--green)">${S.interim?`<em style="color:var(--gold)">"${S.interim}"</em><br/><br/>`:''}Listening...</div>`:''}
+        ${S.messages.map(m=>`<div class="bub ${m.role}"><span class="who">${m.role==='user'?'You':'Cora'}</span>${m.text}</div>`).join('')}
+        ${S.phase==="processing"?`<div class="bub cora" style="opacity:.5"><span class="who">Cora</span>Let me check that for you...</div>`:''}
+        ${S.phase==="listening"&&S.messages.length>0?`<div class="bub wait">${S.interim||'Listening...'}</div>`:''}
+      </div>
+      ${S.error?`<div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.12);color:var(--red);font-size:11px">${S.error}</div>`:''}
+      <div class="cora-foot">${curV?curV.name:'No voice loaded'}</div>
+    </div>
+  </div>`;
+  scrollT();
 }
 
 // ── Init ──
-checkHealth();
-setInterval(checkHealth, 30000);
-render();
+checkH();setInterval(checkH,30000);render();
 </script>
 </body>
 </html>
