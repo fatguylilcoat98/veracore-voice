@@ -175,6 +175,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100vh
 <div id="app"></div>
 <script>
 const VC="https://veracore.onrender.com";
+const VC_EMBED=VC+"?embed_key=bYVuUELDctjC7dRfbhEPkSrwsc0vpBqECdwRo1mB74Q";
 
 const S={phase:"idle",question:"",interim:"",messages:[],error:null,online:true,selectedVoice:null};
 
@@ -264,7 +265,7 @@ function resetAll(){
   if(speechSynthesis)speechSynthesis.cancel();
   S.phase="idle";S.question="";S.interim="";S.messages=[];S.error=null;
   render();
-  const f=document.getElementById("vc-frame");if(f)f.src=VC;
+  const f=document.getElementById("vc-frame");if(f)f.src=VC_EMBED;
 }
 function onVC(idx){
   S.selectedVoice=idx===""?null:parseInt(idx);render();
@@ -306,7 +307,7 @@ function render(){
   <div class="split">
     <!-- LEFT: Actual Veracore UI -->
     <div class="panel-vc">
-      <iframe id="vc-frame" class="vc-frame" src="${VC}" loading="eager"></iframe>
+      <iframe id="vc-frame" class="vc-frame" src="${VC_EMBED}" loading="eager"></iframe>
     </div>
 
     <!-- RIGHT: Cora -->
